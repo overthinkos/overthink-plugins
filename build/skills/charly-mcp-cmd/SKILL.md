@@ -274,7 +274,7 @@ Each `mcp:` step is a `check:` step — a deterministic probe that satisfies the
 
 ## Validator coverage
 
-`charly box validate` enforces at the `validateCharlyVerb` dispatch in `charly/validate_check.go`:
+`charly box validate` + the CUE schema enforce (the `mcp` verb is an out-of-process plugin — its method-name enum is validated by CUE on core `#Op`, its required-modifier checks run in `candy/plugin-mcp` at dispatch):
 
 - Method name must be in `mcpMethods` (7 entries); unknown methods list the allowed set in the error.
 - `context` must include `deploy`; a build-context mcp step raises `"mcp: verb requires context:\"deploy\""`.
@@ -451,7 +451,7 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 - `/charly-openwebui:openwebui` — another consumer (`mcp_accept: jupyter, chrome-devtools`).
 - `/charly-jupyter:jupyter`, `/charly-jupyter:jupyter-ml`, `/charly-jupyter:jupyter-ml-notebook` — images bundling `jupyter-mcp`; `charly check live <image> --filter mcp` exercises the verb end-to-end.
 - `/charly-selkies:sway-browser-vnc`, `/charly-selkies:selkies-labwc`, `/charly-selkies:selkies-labwc-nvidia` — images bundling `chrome-devtools-mcp` (transitively via the chrome metalayer).
-- `/charly-internals:go` — host-side implementation map: `mcp_preresolve.go` (`preresolveMcpEndpoint` — host podman/OCI-label/port resolution into the check env), `mcp_server.go` (server: Kong→MCP reflection, destructive-hint set, `captureAndRun`), `validate_check.go` (`validateCharlyVerb` deploy-scope enforcement for `mcp`). The MCP CLIENT (the 7 methods + the go-sdk dial) lives out-of-process in `candy/plugin-mcp` — see `/charly-internals:plugin`.
+- `/charly-internals:go` — host-side implementation map: `mcp_preresolve.go` (`preresolveMcpEndpoint` — host podman/OCI-label/port resolution into the check env), `mcp_server.go` (server: Kong→MCP reflection, destructive-hint set, `captureAndRun`), `validate_check.go` (op-level deploy-scope enforcement; the `mcp` method-name + required-modifier checks live in `candy/plugin-mcp` + the CUE `#Op` enum). The MCP CLIENT (the 7 methods + the go-sdk dial) lives out-of-process in `candy/plugin-mcp` — see `/charly-internals:plugin`.
 - `/charly-coder:charly-mcp` — the deployment layer that wires `charly mcp serve` into an image via supervisord. Includes the `/workspace` bind-mount (volume NAME `project`) + `CHARLY_PROJECT_DIR` env var pattern for build-mode tools.
 - `/charly-tools:charly` — the underlying binary layer; required by `charly-mcp`.
 - `/charly-image:image` — "Project directory resolution" subsection documents the `-C` / `--dir` / `CHARLY_PROJECT_DIR` global flag that makes the server's project-dir bind-mount work.
