@@ -59,7 +59,7 @@ At least one must be installed:
 
 - **Secret backend availability** — keyring or config. Reports which backend is active and whether it probed healthy.
 - **Config file permissions** — warns if `~/.config/charly/config.yml` is not `0600`.
-- **Plaintext credential count** — warns if `> 0` plaintext entries are in `config.yml` (suggests `charly settings migrate-secrets`).
+- **Plaintext credential count** — warns if `> 0` plaintext entries are in `config.yml` (suggests `charly secrets migrate-secrets`).
 - **Secret Service collections** — iterates the Secret Service provider's collections and reads the `Label` property on each. A *broken* collection is one whose `org.freedesktop.DBus.Properties.Get` returns `NoSuchObject` or a DBus I/O error — the hallmark of KeePassXC FdoSecrets stubs or a corrupt keyring. Status is `CheckOK` when all collections respond, `CheckWarning` when any are broken (charly iterates past them automatically — see `/charly-automation:enc`). The `Detail` field names the broken path(s) so the user can act on them (KeePassXC → Tools → Settings → Secret Service Integration → Exposed Databases).
 - **Keyring index consistency** — cross-checks the `keyring_keys` shadow index in `config.yml` against the live Secret Service via `findItemAnyCollection`. For every indexed `service/key` entry, looks it up through the iteration-capable read path. Status is `CheckOK` if `N/N` indexed keys resolve, `CheckWarning` with the stale entries listed otherwise. Remediation hint: `charly secrets set <service> <key>` to re-store, or prune the shadow index.
 

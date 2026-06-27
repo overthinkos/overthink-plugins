@@ -107,7 +107,7 @@ Collects credentials from:
 2. **System keyring** — entries tracked in `keyring_keys` config list
 
 Copies (does NOT clear the source) into the active store. This differs from
-`charly settings migrate-secrets`, which *moves* config plaintext into the keyring
+`charly secrets migrate-secrets`, which *moves* config plaintext into the keyring
 and strips the plaintext copies.
 
 ### Export
@@ -506,7 +506,18 @@ For GPG agent forwarding into containers (so `gpg --decrypt` works inside), use 
 
 ## Source
 
-`charly/secrets_cmd.go` (CLI commands), `charly/secrets_gpg.go` (GPG .secrets commands, key management, diagnostics), `charly/credential_store.go` + `charly/credential_keyring.go` + `charly/credential_config.go` (credential backends), `charly/migrate_secrets_kdbx.go` (`charly migrate`).
+The credential store + the `charly secrets` CLI are EXTERNALIZED into the out-of-process
+`candy/plugin-secrets` plugin (the C2 dep-shed that removed `go-keyring` from
+`charly/go.mod`): `candy/plugin-secrets/command.go` (the `charly secrets` CLI: list/get/set/
+delete/import/export/migrate-secrets), `candy/plugin-secrets/secrets_gpg.go` (GPG `.secrets`
+commands + key management + diagnostics), `candy/plugin-secrets/{store,config_store,
+credential_keyring,credential_config,secret_service,verb_credential,credential_admin}.go`
+(the `verb:credential` backends + the env-less resolve + the doctor health probe). charly's
+core keeps only the thin adapter `charly/credential_plugin.go` (`CredentialStore` /
+`ResolveCredential` / `DefaultCredentialStore` → `verb:credential`) + `charly/secrets.go`
+(podman-secret provisioning) + `charly/migrate_secrets_kdbx.go` (`charly migrate`). On an
+installed host the plugin lives beside charly at `/usr/lib/charly/plugins` (the PKGBUILD
+bakes the binary + its `.providers` manifest).
 
 ## When to Use This Skill
 

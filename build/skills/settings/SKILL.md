@@ -20,7 +20,7 @@ Manage charly's runtime configuration stored in `~/.config/charly/settings.yml`.
 | List all | `charly settings list` | Show all settings with values |
 | Reset to default | `charly settings reset <key>` | Remove override, use default |
 | Config path | `charly settings path` | Print path to settings.yml |
-| Migrate secrets | `charly settings migrate-secrets [--dry-run]` | Move plaintext credentials to keyring |
+| Migrate secrets | `charly secrets migrate-secrets [--dry-run]` | Move plaintext credentials to keyring (externalized to candy/plugin-secrets) |
 
 ## Key Settings
 
@@ -70,11 +70,12 @@ charly settings set secret_backend keyring
 # Force the config-file plaintext fallback (headless hosts)
 charly settings set secret_backend config
 
-# Migrate plaintext secrets from config.yml to the keyring
-charly settings migrate-secrets
+# Migrate plaintext secrets from config.yml to the keyring (the credential
+# store + secrets CLI are externalized into candy/plugin-secrets)
+charly secrets migrate-secrets
 
 # Preview migration without changes
-charly settings migrate-secrets --dry-run
+charly secrets migrate-secrets --dry-run
 ```
 
 ### Resolution Chain

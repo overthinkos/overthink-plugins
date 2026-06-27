@@ -144,9 +144,11 @@ would hang `charly config mount` forever polling for a keyring that can't serve 
 secret, and a quadlet unit with `TimeoutStartSec=0` would wedge in
 `activating (start-pre)` indefinitely.
 
-`charly` ships its own minimal godbus-based Secret Service client
-(`charly/secret_service.go`, the `ssClient` type) with a three-step iteration in
-`findItemAcrossCollections`:
+The credential store is EXTERNALIZED into the out-of-process `candy/plugin-secrets`
+plugin (the C2 dep-shed; `go-keyring` no longer links into charly's core). The plugin
+ships its own minimal godbus-based Secret Service client
+(`candy/plugin-secrets/secret_service.go`, the `ssClient` type) with a three-step
+iteration in `findItemAcrossCollections`:
 
 1. Try the collection at the `default` alias (if healthy — skipped if its
    property reads error out).
@@ -176,18 +178,20 @@ from "credential simply not stored").
           → for each candidate: unlock → SearchItems({service, username}) → first match wins
         → ssClient.getSecret(item) → []byte
 
-**Source:** `charly/secret_service.go` (ssClient + findItemAcrossCollections),
-`charly/credential_keyring.go:Get` (the KeyringStore.Get entry point that
-delegates to ssClient). Covered by 9 unit tests in
-`charly/secret_service_test.go` including default-alias-healthy,
+**Source:** `candy/plugin-secrets/secret_service.go` (ssClient + findItemAcrossCollections),
+`candy/plugin-secrets/credential_keyring.go` (the `KeyringStore.Get` entry point that
+delegates to ssClient). Covered by the unit tests in
+`candy/plugin-secrets/secret_service_test.go` including default-alias-healthy,
 default-alias-broken-fallback-to-iteration, preferLabel routing, all-broken
 → ErrSSAllBroken, not-found-anywhere → ErrSSNotFound, search/unlock errors,
-and candidate dedup.
+and candidate dedup. charly's core reaches them over `verb:credential` (the
+`charly/credential_plugin.go` adapter).
 
 ## Credential source semantics
 
-`ResolveCredential` at `charly/credential_store.go:139` returns a `(value, source)`
-pair where the source string is one of:
+`ResolveCredential` (the core adapter `charly/credential_plugin.go`; the env check + the
+env-less store chain `resolveStoreChain` in `candy/plugin-secrets/store.go`) returns a
+`(value, source)` pair where the source string is one of:
 
 | Source | Meaning | Caller reaction |
 |---|---|---|
@@ -443,9 +447,11 @@ Plain bind mounts do not use encrypted storage commands. They are direct host di
 **Source files:**
 
 - `charly/enc.go` — `encMount` (with all-mounted short-circuit), `ensureEncryptedMounts`, `encUnmount`, scope unit lifecycle, `resolveEncPassphraseForMount` (bounded retry for `source=unavailable` via `retryUnavailable`), `waitForKeyringUnlock` (event-driven DBus signal wait for `source=locked`), `waitForKeyringUnlockLoop`, `waitForKeyringUnlockBackstopOnly`, `encMountSignalBackstop` (30s), `encMountProgressLogInterval` (1h)
-- `charly/secret_service.go` — godbus-based ssClient, `findItemAcrossCollections` (with locked-vs-broken tracking), `ssOps` interface for test injection, `ErrSSNotFound` / `ErrSSAllBroken` / `ErrSSInteractiveUnlockRequired` sentinel errors, `isCollectionUnlockedSignal` (DBus signal filter)
-- `charly/credential_keyring.go` — `KeyringStore.Probe` (iterates collections, accepts if ≥1 healthy), `KeyringStore.Get` (delegates to `keyringGetViaSSClient`, maps `ErrSSInteractiveUnlockRequired` to `KeyringLockedError`), index-divergence warning
-- `charly/credential_store.go` — `DefaultCredentialStore` (tracks `defaultStoreProbeErr`), `ResolveCredential` (returns the new `"unavailable"` source distinctly from `"default"`)
+- `charly/keyring_unlock_signal.go` — `isCollectionUnlockedSignal` (the DBus signal filter `enc.go`'s unlock-waiter keeps in core; `godbus` stays for it)
+- `charly/credential_plugin.go` — the CORE adapter: `DefaultCredentialStore` (→ `pluginCredentialStore`), `ResolveCredential` (the `"unavailable"`-vs-`"default"` source distinction), `resolveSecretBackend`, `resetDefaultCredentialStore` (propagates a keyring re-probe to the plugin over `verb:credential reset`)
+- `candy/plugin-secrets/secret_service.go` — godbus-based ssClient, `findItemAcrossCollections` (with locked-vs-broken tracking), `ssOps` interface for test injection, `ErrSSNotFound` / `ErrSSAllBroken` / `ErrSSInteractiveUnlockRequired` sentinel errors
+- `candy/plugin-secrets/credential_keyring.go` — `KeyringStore.Probe` (iterates collections, accepts if ≥1 healthy), `KeyringStore.Get` (delegates to `keyringGetViaSSClient`, maps `ErrSSInteractiveUnlockRequired` to `KeyringLockedError`), index-divergence warning
+- `candy/plugin-secrets/store.go` — `DefaultCredentialStore` (tracks `defaultStoreProbeErr`), `resolveStoreChain` (the env-less store resolution the core adapter's `ResolveCredential` forwards to over `verb:credential`)
 - `charly/deploy.go` — `DeployVolumeConfig`, `ResolveVolumeBacking`
 - `charly/runtime_config.go` — `KeyringCollectionLabel` field (the `keyring_collection_label` setting)
 

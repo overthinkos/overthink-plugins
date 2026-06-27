@@ -338,13 +338,10 @@ See `/charly-image:image` "user_policy" for the user-facing decision matrix, `/c
 | `devices.go` | Host device auto-detection. `DetectedDevices` struct with `RenderNode` field (first `/dev/dri/renderD*`). `appendAutoDetectedEnv()` centralizes injection of `HSA_OVERRIDE_GFX_VERSION`, `DRINODE`, `DRI_NODE` — called at 10 sites across config_image.go, start.go, shell.go. Uses `appendEnvUnique` so user `-e` flags always override |
 | `tunnel.go` | Tunnel providers (Tailscale, Cloudflare), backend scheme helpers (`schemeTarget`, `tailscaleFlag`, `isTCPFamily`), start/stop for each provider |
 | `quadlet.go` | Quadlet .container file generation, `Secret=` directives |
-| `credential_store.go` | `CredentialStore` interface, `ResolveCredential()`, `DefaultCredentialStore()`, `ConfigMigrateSecretsCmd` |
-| `credential_keyring.go` | System keyring backend (`go-keyring`: GNOME Keyring, KDE Wallet, KeePassXC via FdoSecrets / Secret Service) |
-| `credential_config.go` | Config file credential backend (plaintext fallback for headless) |
+| `credential_plugin.go` | The CORE adapter for the EXTERNALIZED credential store (C2 dep-shed removed `go-keyring` from `charly/go.mod`): `CredentialStore` interface, `ResolveCredential()`, `DefaultCredentialStore()` (→ `pluginCredentialStore`), `resolveSecretBackend()`, `credentialHealth()`, the `setDefaultCredentialStoreForTest` seam. Every method forwards to `verb:credential` (served out-of-process by `candy/plugin-secrets`, or the baked `/usr/lib/charly/plugins` binary). The store backends + the `charly secrets` CLI + GPG `.secrets` surface live in `candy/plugin-secrets/` now, NOT core |
+| `keyring_unlock_signal.go` | `isCollectionUnlockedSignal` — the ONE Secret Service DBus signal filter `enc.go`'s encrypted-volume unlock-waiter keeps (the `ssClient` store-CRUD moved to `candy/plugin-secrets`; `godbus` stays in core for enc.go) |
 | `migrate_secrets_kdbx.go` | `charly migrate` — strips residual `secret_backend: kdbx` + `secrets_kdbx_*` keys from `~/.config/charly/config.yml` |
-| `secrets.go` | Container secret collection from labels, Podman secret provisioning, `SecretArgs()` |
-| `secrets_cmd.go` | `charly secrets` CLI commands (list, get, set, delete, import, export — all retargeted to `DefaultCredentialStore()`) + the `gpg` subgroup |
-| `secrets_gpg.go` | `charly secrets gpg` commands (show, env, edit, encrypt, decrypt, set, unset, add-recipient, recipients) |
+| `secrets.go` | Container secret collection from labels, Podman secret provisioning, `SecretArgs()`, `generateAndStoreSecret`, the interactive `promptPassword` (a deploy-time operator prompt) |
 
 ### Remote Layer Refs
 
@@ -386,7 +383,7 @@ section is the Go-implementation map.
 ## Go Module Info
 
 - Go version: 1.25.3
-- Key dependencies: `kong` (CLI), `go-containerregistry` (OCI), `go-keyring` (Secret Service API)
+- Key dependencies: `kong` (CLI), `go-containerregistry` (OCI). The credential store's `go-keyring` (Secret Service API) is NOT a core dependency — it links only into the out-of-process `candy/plugin-secrets` plugin (the C2 dep-shed)
 - Module path: `charly/go.mod`
 
 ## Common Workflows
