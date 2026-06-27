@@ -328,7 +328,7 @@ charly check wl screenshot <image> out.png            # Wayland screenshot (grim
 - `/charly-check:check` — parent router; the `vnc:` verb dispatches out-of-process via `candy/plugin-vnc` (the host pre-resolves the pod/vm RFB endpoint).
 - `/charly-check:wl` — Wayland-native desktop automation (sibling verb; works on NVIDIA headless).
 - `/charly-check:cdp` — Chrome DevTools Protocol automation (sibling verb; same container, different protocol).
-- `/charly-check:dbus` — D-Bus calls and desktop notifications (sibling verb under `charly check`).
+- `/charly-check:dbus` — D-Bus calls and desktop notifications via the declarative `dbus:` verb served out-of-process by `candy/plugin-dbus`.
 - `/charly-check:wl` (sway subgroup) — Sway compositor control (window management, workspaces)
 - `/charly-core:charly-config` — VNC password storage, `secret_backend` setting, `migrate-secrets` command
 - `/charly-core:service` — Managing wayvnc supervisord service

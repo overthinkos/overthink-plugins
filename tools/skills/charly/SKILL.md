@@ -2,7 +2,7 @@
 name: charly
 description: |
   OpenCharly CLI (charly) binary installed into container/VM images for in-container use.
-  Use when working with charly binary deployment inside containers, native D-Bus support, or the full charly toolchain (charly binary + virtualization + gocryptfs + socat).
+  Use when working with charly binary deployment inside containers, in-container charly CLI usage, or the full charly toolchain (charly binary + virtualization + gocryptfs + socat).
 ---
 
 # charly -- OpenCharly CLI binary
@@ -15,11 +15,14 @@ description: |
 
 ## What It Provides
 
-The `charly` binary inside containers serves two purposes:
-
-1. **Native D-Bus agent** — `charly check dbus` commands on the host delegate to an in-venue `charly` via `engine exec container charly check dbus <cmd> . <args>`, which connects to the local D-Bus session bus using `godbus/dbus/v5` (pure Go, no external tools needed). The primary path for `charly check dbus notify`, `charly check dbus call`, `charly check dbus list`, and `charly check dbus introspect`. **The box need NOT bake the `charly` candy for this:** when the venue lacks `charly`, the explicit dbus commands COPY the host's own binary in on demand (the generic copy-`charly`-into-a-running-venue mechanism, `EnsureCharlyInVenue` over `DeployExecutor.PutFile` — `podman cp` for a container, `scp` for a VM/host) and invoke the delivered copy. Baking the candy only pre-stages the binary so the first call skips the copy.
-
-2. **In-container CLI** — full charly functionality available inside the container for scripting, service management, and automation.
+The `charly` binary inside containers provides the full charly CLI for in-venue
+scripting, service management, and automation. **The box need NOT bake the `charly`
+candy for charly to run inside a venue:** when a flow needs `charly` present and the
+venue lacks it (nested from-image delegation), the generic copy-`charly`-into-a-running-venue
+mechanism (`EnsureCharlyInVenue` over `DeployExecutor.PutFile` — `podman cp` for a
+container, `scp` for a VM/host) copies the host's own binary in on demand and invokes
+the delivered copy. Baking the candy only pre-stages the binary so the first such call
+skips the copy.
 
 ## Check-vs-production binary source — disposable beds bake the IN-DEV charly
 
@@ -107,8 +110,6 @@ my-image:
 
 - `/charly-infrastructure:virtualization`, `/charly-infrastructure:gocryptfs`, `/charly-infrastructure:socat` -- the candies the `charly` candy composes alongside the binary to form the full toolchain
 - `/charly-coder:charly-mcp` -- candies: [charly, supervisord] meta-composition that deploys `charly mcp serve` (~192-tool MCP gateway) with a `/workspace` bind mount (volume NAME `project`) for build-mode tools + auto-fallback to overthinkos/overthink when nothing is bound
-- `/charly-infrastructure:dbus-layer` -- D-Bus session bus (charly check dbus commands need this)
-- `/charly-selkies:swaync` -- notification daemon (needed for charly check dbus notify to show popups)
 
 ## When to Use This Skill
 
@@ -117,7 +118,6 @@ Use when the user asks about:
 - Installing the charly binary inside containers
 - The full charly toolchain composition (charly binary + virtualization + gocryptfs + socat)
 - In-container charly CLI usage
-- Native D-Bus support (charly check dbus commands delegate to in-container binary)
 - Updating the charly candy binary after code changes
 
 ## Related

@@ -211,7 +211,7 @@ Source: `charly/wl.go`.
 - `/charly-check:check` — parent router; `charly check wl …` is how every invocation is dispatched.
 - `/charly-check:vnc` — VNC/RFB protocol alternative (sibling verb; TCP-based, works remotely).
 - `/charly-check:cdp` — Chrome DevTools Protocol (sibling verb; DOM-level interaction, `--wl` flag for click, `axtree` for accessibility).
-- `/charly-check:dbus` — D-Bus calls and desktop notifications (sibling verb under `charly check`).
+- `/charly-check:dbus` — D-Bus calls and desktop notifications via the declarative `dbus:` verb served out-of-process by `candy/plugin-dbus`.
 - `/charly-selkies:wl-tools` — Compositor-agnostic tools (wtype, wlrctl, wl-clipboard, wlr-randr, xdotool, ydotool)
 - `/charly-check:wl-overlay` — Fullscreen overlays for recordings (title cards, lower-thirds, countdowns, highlights, fades)
 - `/charly-selkies:wl-overlay-layer` — Overlay layer (gtk4-layer-shell, python3-gobject)

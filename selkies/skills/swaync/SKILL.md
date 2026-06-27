@@ -59,15 +59,30 @@ Works with any wlroots compositor via `wlr-layer-shell` protocol:
 
 ## Testing Notifications
 
+Send and verify notifications declaratively with the `dbus:` check verb (served
+out-of-process by `candy/plugin-dbus`, driving the session bus with `gdbus` — no
+shell quoting issues), run with `charly check live <image> --filter dbus`:
+
+```yaml
+notify-test:
+    check: a desktop notification is delivered
+    dbus: notify
+    context: [deploy]
+    text: Title
+    description: Body text
+notifications-registered:
+    check: swaync is receiving notifications
+    dbus: list
+    context: [deploy]
+    stdout:
+        contains: Notifications
+```
+
+Host-side alternatives:
+
 ```bash
-# Preferred: use charly check dbus notify (native Go D-Bus, no shell quoting issues)
-charly check dbus notify <image> "Title" "Body text"
-
-# Alternative: use charly cmd with notification (triggers on completion)
+# charly cmd with completion notification (gdbus, host-side)
 charly cmd <image> "sleep 2 && echo done"
-
-# Check if swaync is receiving notifications
-charly check dbus list <image> | grep Notifications
 
 # Low-level: notify-send (requires libnotify layer)
 charly cmd <image> "notify-send 'Title' 'Body text'" --no-notify
@@ -93,7 +108,7 @@ charly cmd <image> "swaync-client -d"    # toggle DnD
 ## Related Candies
 
 - `/charly-infrastructure:dbus-layer` -- D-Bus session bus dependency
-- `/charly-selkies:libnotify` -- `notify-send` CLI (optional; `charly check dbus notify` uses native Go D-Bus instead)
+- `/charly-selkies:libnotify` -- `notify-send` CLI (optional; the `dbus: notify` check verb uses `gdbus` instead)
 - `/charly-selkies:waybar` -- notification bell module
 - `/charly-selkies:waybar-labwc` -- same notification bell module
 - `/charly-selkies:desktop-fonts` -- Nerd Font icons for notification bell

@@ -8,7 +8,7 @@ description: |
   (`disposable: true`, run via `charly check run <bed>`), or any plan step / Op
   authoring. Covers the unified `charly check` surface: three
   primary modes (image / live / run),
-  3 in-core live-container probe verbs (wl/dbus/libvirt) plus the out-of-process plugin check verbs (kube/adb/appium/spice/mcp/record/cdp/vnc),
+  2 in-core live-container probe verbs (wl/libvirt) plus the out-of-process plugin check verbs (kube/adb/appium/spice/mcp/record/cdp/vnc/dbus),
   verb catalog (file/port/command/http/package/service/process/dns/user/
   unix_group/interface/kernel-param/mount/addr/matching), runtime variable
   resolution (`${HOST_PORT:N}`, `${VOLUME_PATH:name}`, `${CONTAINER_IP}`,
@@ -333,9 +333,9 @@ Same chain primitive (`NestedExecutor`) used everywhere — `charly bundle
 add`, `charly check live`, `charly check run` (AI iteration scoring).
 
 **Exception — a POD leaf nested in a VM delegates its check to the guest.** Because
-the host-vantage probes (the protocol verbs wl/dbus, which shell out
-to a host `charly check <verb>` subprocess resolving the container on the HOST's
-podman, plus `cdp`/`vnc` dispatching out-of-process via `candy/plugin-cdp`/`candy/plugin-vnc`; and
+the host-vantage probes (the protocol verb wl, which shells out
+to a host `charly check wl` subprocess resolving the container on the HOST's
+podman, plus `cdp`/`vnc`/`dbus` dispatching out-of-process via `candy/plugin-cdp`/`candy/plugin-vnc`/`candy/plugin-dbus`; and
 `${HOST_PORT}` addr/http, resolved via HOST `podman inspect`) cannot
 reach a container living in the guest, `charly check live <vm>.<pod>` does NOT
 chain-dispatch those per-check (they would SKIP). Instead `runVm` runs
@@ -619,29 +619,20 @@ explicit subcommand names below take over when matched.
 | Subcommand | Skill | Purpose |
 |-----------|-------|---------|
 | `charly check wl …` | `/charly-check:wl` | Wayland desktop input/windows/clipboard + sway IPC |
-| `charly check dbus …` | `/charly-check:dbus` | D-Bus calls, introspection, desktop notifications |
 | `charly check libvirt …` | `/charly-check:libvirt` | libvirt-RPC test commands for VMs — info, domain XML, QMP, qemu-guest-agent, snapshots, events. VM-only. |
 
-These three verbs live under `charly check` because every one of them is a "probe or
+These two verbs live under `charly check` because each is a "probe or
 drive a running service" operation — the same surface the declarative test
-runner composes when it executes checks. The `cdp:`, `vnc:`, `mcp:`, and `record:` verbs are NOT host
+runner composes when it executes checks. The `cdp:`, `vnc:`, `mcp:`, `record:`, and `dbus:` verbs are NOT host
 subcommands: each is a declarative-only check verb served out-of-process by its
-plugin (`candy/plugin-cdp`, `candy/plugin-vnc`, `candy/plugin-mcp`, `candy/plugin-record`), parallel to the
+plugin (`candy/plugin-cdp`, `candy/plugin-vnc`, `candy/plugin-mcp`, `candy/plugin-record`, `candy/plugin-dbus`), parallel to the
 `kube:`/`spice:`/`adb:`/`appium:` plugin verbs (see the Related-skills note below).
 
 **Reserved image names:** because subcommand names take priority when
-matched, an image literally named `wl`, `dbus`,
+matched, an image literally named `wl`
 or `libvirt` cannot be run via `charly check live <name>` —
 use the explicit `charly check live <name>` form or rename the image. No such
 images currently exist in `charly.yml`.
-
-**Gotcha — stale container-baked `charly` binary:** `charly check dbus notify` and
-`charly check dbus call` delegate to the container's own `charly` binary (see
-`charly/notify.go:20`, `charly/dbus.go:195,229`). If the container bakes an `charly`
-binary too old to know the `charly check <verb>` subcommand path, the delegation
-fails. Fix by rebuilding and redeploying any image that bakes `charly` (grep
-`charly.yml` for `- charly$` to find them). Test runner itself is unaffected —
-this only bites the host→container delegation paths.
 
 ## Authoring: the plan (child step nodes)
 
@@ -751,7 +742,7 @@ naturally. An empty-string map value falls through to the next tag
 | `matching` | `contains` | Pure in-process value matching — no target probe |
 | `cdp` | Method name (status/list/eval/text/html/url/axtree/screenshot/open/click/type/raw/wait/coords + spa-*) + method-specific modifiers (`tab`, `expression`, `url`, `selector`, `text`, `artifact`, `x`, `y`) + shared `stdout`/`stderr`/`exit_status`/`artifact_min_bytes` | **Deploy-context only.** Dispatches out-of-process via `candy/plugin-cdp` (no host subcommand). See Live-container verb catalog below. |
 | `wl` | Method name (screenshot/status/click/type/key/key-combo/mouse/scroll/drag/clipboard/toplevel/windows/focus/close/geometry/xprop/atspi/exec/resolution + overlay-*/sway-*) + method-specific modifiers (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) + shared matchers | **Deploy-context only.** Wraps `charly check wl <method>` (including `sway` and `overlay` nested subgroups). See Live-container verb catalog below. |
-| `dbus` | Method name (list/call/introspect/notify) + method-specific modifiers (`dest`, `path`, `method`, `args`, `text`) + shared matchers | **Deploy-context only.** Wraps `charly check dbus <method>`. |
+| `dbus` | Method name (list/call/introspect/notify) + method-specific modifiers (`dest`, `path`, `method`, `args`, `text`, `description`) + shared matchers | **Deploy-context only.** Dispatches out-of-process via `candy/plugin-dbus` (no host subcommand); EXEC-based, driving the venue's session bus with `gdbus`. |
 | `vnc` | Method name (status/screenshot/click/mouse/type/key/rfb/passwd) + method-specific modifiers (`x`, `y`, `text`, `key`, `artifact`) + shared matchers | **Deploy-context only.** Dispatches out-of-process via `candy/plugin-vnc` (no host subcommand); the host pre-resolves the RFB endpoint for pod AND vm targets. See Live-container verb catalog below. |
 | `mcp` | Method name (ping/servers/list-tools/list-resources/list-prompts/call/read) + method-specific modifiers (`tool`, `uri`, `input`, `mcp_name`) + shared matchers | **Deploy-context only.** Speaks `github.com/modelcontextprotocol/go-sdk` to any `mcp_provide` endpoint. See "Method allowlist — mcp" below. |
 
@@ -809,10 +800,10 @@ verb. One code per test. See Authoring Gotcha #2.
 
 ### Live-container verb catalog: `cdp`, `wl`, `dbus`, `vnc`, `mcp`
 
-The two in-core verbs (`wl`, `dbus`) wrap the corresponding host
-`charly check <verb> <method>` CLI subcommands; the `cdp`, `vnc`, and `mcp` verbs have **no** host
+The in-core verb (`wl`) wraps the corresponding host
+`charly check wl <method>` CLI subcommand; the `cdp`, `vnc`, `dbus`, and `mcp` verbs have **no** host
 subcommand — each dispatches out-of-process via its plugin (`candy/plugin-cdp`,
-`candy/plugin-vnc`, `candy/plugin-mcp`; parallel to the `kube:`/`spice:`/`adb:`/`appium:` plugin verbs).
+`candy/plugin-vnc`, `candy/plugin-dbus`, `candy/plugin-mcp`; parallel to the `kube:`/`spice:`/`adb:`/`appium:` plugin verbs).
 The `vnc` plugin covers pod AND vm targets — the host pre-resolves the RFB endpoint
 (pod port-5900 or a VM's libvirt VNC via bridge/tunnel) and the plugin dials it.
 Either way, every live-container
@@ -822,10 +813,10 @@ All five are **deploy-context only** — they need a running container with port
 mappings; `charly box validate` rejects them in build context, and `charly check
 box` skips them at runtime with a clear message.
 
-**Assertion semantics:** delegation — for the two in-core verbs (`wl`, `dbus`) the runner
-executes `charly check <verb> <method> <image> <args…> [-i <instance>]` on the
-host; for `cdp`, `vnc`, and `mcp` it dispatches the method to the out-of-process plugin
-(`candy/plugin-cdp`, `candy/plugin-vnc`, `candy/plugin-mcp`).
+**Assertion semantics:** delegation — for the in-core verb (`wl`) the runner
+executes `charly check wl <method> <image> <args…> [-i <instance>]` on the
+host; for `cdp`, `vnc`, `dbus`, and `mcp` it dispatches the method to the out-of-process plugin
+(`candy/plugin-cdp`, `candy/plugin-vnc`, `candy/plugin-dbus`, `candy/plugin-mcp`).
 Either path captures stdout/stderr/exit and feeds the output through the existing
 matcher pipeline. Queries (status/list/eval/text/html/url/axtree/screenshot/…)
 produce assertable output. Side-effect actions (click/type/open/close/…) pass
@@ -1078,15 +1069,6 @@ The four modifiers are independent — set just the one you need or
 combine all four for the strongest "the artifact is real" assertion.
 Failure messages identify the specific artifact and the specific
 threshold that wasn't met.
-
-#### Gotcha — stale container-baked `charly` binary
-
-The `dbus:` verb invokes the container's `charly` binary via delegation. If
-the container bakes an `charly` binary too old to know the `charly check <verb>`
-subcommand path, the delegation fails. Rebuild and redeploy any image that
-bakes `charly` (grep `charly.yml` for `- charly$`). The test runner itself is
-unaffected; this only bites the host→container delegation paths in the
-`dbus` verb.
 
 ## Authoring Gotchas (learned the hard way)
 
@@ -1655,7 +1637,7 @@ deliberately.
 
 ## Related skills
 
-- **Live-container probe verbs under `charly check`** — `/charly-check:wl`, `/charly-check:dbus`, `/charly-check:libvirt` are dispatched as `charly check wl|dbus|libvirt`. The `cdp:` Chrome-DevTools verb (`/charly-check:cdp`), the `vnc:` VNC-framebuffer verb (`/charly-check:vnc`), the `mcp:` MCP-protocol verb (`/charly-build:charly-mcp-cmd`), the `record:` recording verb (`/charly-check:record`), the `kube:` cluster-probe verb (`/charly-kubernetes:check-k8s`) and the `spice:` SPICE-wire verb (`/charly-check:spice`) are NOT host `charly check` subcommands — each is a declarative check verb served out-of-process by its plugin (`candy/plugin-cdp`, `candy/plugin-vnc`, `candy/plugin-mcp`, `candy/plugin-record`, `candy/plugin-kube`, `candy/plugin-spice`), parallel to the `adb:`/`appium:` plugin verbs. See the Subcommands section above.
+- **Live-container probe verbs under `charly check`** — `/charly-check:wl`, `/charly-check:libvirt` are dispatched as `charly check wl|libvirt`. The `cdp:` Chrome-DevTools verb (`/charly-check:cdp`), the `vnc:` VNC-framebuffer verb (`/charly-check:vnc`), the `dbus:` D-Bus verb (`/charly-check:dbus`), the `mcp:` MCP-protocol verb (`/charly-build:charly-mcp-cmd`), the `record:` recording verb (`/charly-check:record`), the `kube:` cluster-probe verb (`/charly-kubernetes:check-k8s`) and the `spice:` SPICE-wire verb (`/charly-check:spice`) are NOT host `charly check` subcommands — each is a declarative check verb served out-of-process by its plugin (`candy/plugin-cdp`, `candy/plugin-vnc`, `candy/plugin-dbus`, `candy/plugin-mcp`, `candy/plugin-record`, `candy/plugin-kube`, `candy/plugin-spice`), parallel to the `adb:`/`appium:` plugin verbs. See the Subcommands section above.
 - `/charly-image:layer` — layer authoring; plan steps (child step nodes) are part of every `charly.yml`.
 - `/charly-image:image` — image-level plan steps at composition time.
 - `/charly-core:deploy` — local `charly.yml` overlay rules and the plan-step merge.

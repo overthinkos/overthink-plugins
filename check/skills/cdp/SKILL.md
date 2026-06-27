@@ -605,7 +605,7 @@ This pattern works for any page content extraction via JS — the `cdp: eval` st
 - `/charly-internals:plugin` -- the out-of-process provider model that serves `cdp` (`candy/plugin-cdp`).
 - `/charly-check:wl` -- Wayland desktop automation (sibling host verb under `charly check`); also sway subgroup for compositor control; carries `--from-cdp`.
 - `/charly-check:vnc` -- VNC desktop automation via the declarative `vnc:` verb served out-of-process by candy/plugin-vnc (same container, pixel-level interaction); takes desktop-absolute coords (use a `cdp: coords` step to translate viewport→desktop).
-- `/charly-check:dbus` -- D-Bus calls and notifications (sibling host verb under `charly check`).
+- `/charly-check:dbus` -- D-Bus calls and notifications via the declarative `dbus:` verb served out-of-process by `candy/plugin-dbus`.
 - `/charly-core:shell` -- Running commands in containers (`--tty` for OAuth flows)
 - `/charly-core:charly-config` -- Instance deployment, proxy configuration, removal workflow
 - `/charly-image:layer` -- Chrome candy configuration (cdp-proxy service, port declarations)

@@ -186,7 +186,7 @@ uses this mirror.
 
 Every `charly` verb family runs as uid 1000 inside the container sandbox:
 `charly box build/generate/validate/merge/inspect/list/pull`,
-`charly check box/live/wl/dbus/libvirt` (cdp/vnc/mcp/record/kube/adb/appium/spice are declarative out-of-process verbs),
+`charly check box/live/wl/libvirt` (cdp/vnc/mcp/record/kube/adb/appium/spice/dbus are declarative out-of-process verbs),
 `charly config/deploy/start/stop/update/remove/shell/cmd/service/status/logs`,
 `charly vm list/create/start/stop/ssh/destroy` (rootless libvirt session),
 `charly doctor/secrets/settings/alias`. The `charly` candy bakes only the binary — for

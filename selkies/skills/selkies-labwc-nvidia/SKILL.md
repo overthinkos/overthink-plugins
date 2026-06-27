@@ -97,7 +97,7 @@ encoding (zero CPU overhead).
 - `/charly-distros:nvidia` — GPU runtime and CDI device auto-detection
 - `/charly-distros:cuda` — CUDA toolkit and libraries (via the CachyOS GPU base)
 - `/charly-infrastructure:dbus-layer` — session bus for desktop services
-- `/charly-tools:charly` — in-container `charly` binary (enables `charly check dbus notify`)
+- `/charly-tools:charly` — in-container `charly` CLI toolchain (scripting, service management)
 - `/charly-distros:agent-forwarding` — SSH/GPG/direnv agent forwarding
 
 ## Related Boxes
@@ -108,10 +108,10 @@ encoding (zero CPU overhead).
 - `/charly-distros:cachyos` — the CachyOS base image family (owns this box's submodule)
 
 ## Related Commands
-- `/charly-check:check` — parent router for the live-container check verbs (`charly check wl|dbus` host subcommands + the out-of-process `cdp:`/`vnc:`/`mcp:` verbs)
+- `/charly-check:check` — parent router for the live-container check verbs (`charly check wl` host subcommand + the out-of-process `cdp:`/`vnc:`/`mcp:`/`dbus:` verbs)
 - `/charly-check:cdp` — drive Chrome inside the streaming desktop
 - `/charly-check:wl` — interact with the labwc Wayland session
-- `/charly-check:dbus` — D-Bus notifications via in-container `charly` binary
+- `/charly-check:dbus` — the `dbus:` check verb (D-Bus notifications, served out-of-process by `candy/plugin-dbus`)
 - `/charly-build:charly-mcp-cmd` — inherits chrome-devtools-mcp's 2 deploy-scope `mcp:` checks; use `charly check live selkies-labwc-nvidia --filter mcp` to verify the MCP server is alive and exposing the full tool catalog.
 
 ## Related

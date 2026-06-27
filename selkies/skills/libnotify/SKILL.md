@@ -28,25 +28,25 @@ my-image:
 
 ## Purpose
 
-Provides `notify-send` as a convenience CLI for sending desktop notifications from shell scripts and manual use. The `charly check dbus notify` command uses native Go D-Bus instead and does NOT depend on this candy.
+Provides `notify-send` as a convenience CLI for sending desktop notifications from shell scripts and manual use. The `dbus: notify` check verb drives the session bus with `gdbus` instead and does NOT depend on this candy.
 
-### When to use `notify-send` vs `charly check dbus notify`
+### When to use `notify-send` vs the `dbus: notify` verb
 
-| | `notify-send` | `charly check dbus notify` |
+| | `notify-send` | `dbus: notify` verb |
 |---|--------------|-----------------|
-| Requires | `libnotify` candy | `charly` candy (or `gdbus` fallback) |
-| Implementation | Shell command, libnotify C library | Native Go `godbus/dbus/v5` |
-| Use case | Shell scripts inside container | Host-side automation, `charly cmd`/`charly tmux cmd` notifications |
+| Requires | `libnotify` candy | `gdbus` (from `glib2`) in the venue |
+| Implementation | Shell command, libnotify C library | `gdbus` over the executor reverse channel (out-of-process `candy/plugin-dbus`) |
+| Use case | Shell scripts inside container | Check-plan desktop-notification steps (the `charly cmd`/`charly tmux cmd` completion popup uses the same `gdbus` path host-side) |
 
 ## Related Candies
 
 - `/charly-infrastructure:dbus-layer` -- D-Bus session bus (required dependency)
 - `/charly-selkies:swaync` -- notification daemon to display the notifications
-- `/charly-tools:charly` -- alternative: native D-Bus via `charly check dbus notify`
+- `/charly-check:dbus` -- alternative: the `dbus: notify` check verb (served out-of-process by `candy/plugin-dbus`)
 
 ## Used In Boxes
 
-Not used in any current box definition. Optional notification CLI -- prefer `charly check dbus notify` which uses native Go D-Bus.
+Not used in any current box definition. Optional notification CLI -- prefer the `dbus: notify` check verb (driven via `gdbus`).
 
 ## When to Use This Skill
 

@@ -29,17 +29,29 @@ charly check wl screenshot sway-browser-vnc screenshot.png
 
 ## D-Bus and Notification Support
 
-This box includes `dbus` and `charly` candies, enabling:
-- `charly check dbus notify` — native Go D-Bus notifications via in-container charly binary
-- `charly check dbus list/call/introspect` — full D-Bus interaction
+This box includes the `dbus` candy (D-Bus session bus) plus the `charly` candy, enabling:
+- the `dbus:` check verb (`notify`/`list`/`call`/`introspect`) — D-Bus interaction served out-of-process by `candy/plugin-dbus`, driving the session bus with `gdbus`
 - `charly cmd` — single command execution with desktop notification on completion
 - `charly tmux cmd` — tmux command sending with notification
 - `charly status` — supervisord, dbus, and charly probes
 
+```yaml
+# author dbus: steps in the plan, run with: charly check live sway-browser-vnc --filter dbus
+notify-build-done:
+    check: a desktop notification is delivered
+    dbus: notify
+    context: [deploy]
+    text: Build Complete
+    description: Image built successfully
+list-services:
+    check: the notifications service is on the session bus
+    dbus: list
+    context: [deploy]
+    stdout:
+        contains: org.freedesktop.Notifications
+```
 ```bash
-charly check dbus notify sway-browser-vnc "Build Complete" "Image built successfully"
-charly cmd sway-browser-vnc "make test"    # Notifies on completion
-charly check dbus list sway-browser-vnc          # List all D-Bus services
+charly cmd sway-browser-vnc "make test"    # Notifies on completion (gdbus, host-side)
 ```
 
 The notification daemon (swaync) is included via the sway-desktop metalayer.
@@ -126,11 +138,11 @@ port 5900 reachable, Chrome CDP on port 9250→9222 with `/json/version`
 - `/charly-selkies:sway-desktop-vnc`, `/charly-selkies:sway`, `/charly-selkies:wayvnc`,
   `/charly-selkies:chrome-sway`, `/charly-selkies:xdg-portal`, `/charly-infrastructure:dbus-layer`,
   `/charly-tools:charly`, `/charly-distros:agent-forwarding`
-- `/charly-check:check` — declarative testing framework (parent router for the `charly check wl|dbus` host subcommands + the out-of-process `cdp:`/`vnc:`/`mcp:` verbs)
+- `/charly-check:check` — declarative testing framework (parent router for the `charly check wl` host subcommand + the out-of-process `cdp:`/`vnc:`/`mcp:`/`dbus:` verbs)
 - `/charly-check:vnc` — VNC automation on this box
 - `/charly-check:cdp` — Chrome automation (CDP on host port 9250)
 - `/charly-check:wl` — Wayland input/windows/clipboard (sway subgroup for compositor control)
-- `/charly-check:dbus` — D-Bus notifications via in-container `charly` binary
+- `/charly-check:dbus` — the `dbus:` check verb (notifications/list/call/introspect, served out-of-process by `candy/plugin-dbus`)
 - `/charly-build:charly-mcp-cmd` — the box inherits 2 deploy-scope `mcp:` checks from the `chrome-devtools-mcp` candy (ping + list-tools asserting `navigate_page`/`take_screenshot`). `charly check live sway-browser-vnc --filter mcp` runs them; note the **port-publishing gotcha** — if your `charly.yml` has an explicit `port:` override that predates `chrome-devtools-mcp`, port 9224 may not be published. See `/charly-build:charly-mcp-cmd` for the fix.
 
 ## Related Boxes

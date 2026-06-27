@@ -69,7 +69,7 @@ charly start unsloth-studio
 - `/charly-distros:nvidia` — GPU runtime and CDI device auto-detection (base)
 - `/charly-distros:cuda` — CUDA toolkit and libraries (via nvidia base)
 - `/charly-infrastructure:dbus-layer` — session bus for desktop notifications
-- `/charly-tools:charly` — in-container `charly` binary (enables `charly check dbus notify`)
+- `/charly-tools:charly` — in-container `charly` CLI toolchain (scripting, service management)
 - `/charly-distros:agent-forwarding` — SSH/GPG/direnv agent forwarding
 
 ## Related Boxes
