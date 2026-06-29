@@ -8,10 +8,11 @@ description: |
   reverse channel serves, and the host-side VM venue lifecycle (boot the
   domain, build the guest SSH executor, nested-pod-in-guest, teardown, the
   `charly vm` lifecycle) lives in the registered vmSubstrateLifecycle hook. The
-  bare DeployTarget (Name+Emit) interface has two in-proc implementers
-  (OCITarget, PodDeployTarget); the deploy lifecycle is the UnifiedDeployTarget
-  interface, and all four external substrates (local/vm/android/k8s) route
-  through the generic externalDeployTarget. Covers the DeployExecutor interface,
+  bare DeployTarget (Name+Emit) interface has two in-proc BUILD-ENGINE
+  implementers (OCITarget, PodDeployTarget, invoked host-side from a lifecycle
+  hook); the deploy lifecycle is the UnifiedDeployTarget interface, and ALL FIVE
+  external substrates (local/vm/pod/k8s/android) route through the generic
+  externalDeployTarget. Covers the DeployExecutor interface,
   SSHExecutor, VmDeployState persistence, and the host-side ledger.
   Source: charly/vm_deploy_lifecycle.go, charly/deploy_substrate_lifecycle.go,
   charly/deploy_target_external.go, candy/plugin-deploy-vm/, charly/deploy_executor*.go,
@@ -57,15 +58,18 @@ records in the install ledger and replays at `charly bundle del`
 ## `externalDeployTarget` — the generic adapter
 
 `externalDeployTarget` (`charly/deploy_target_external.go`) is the generic
-out-of-process adapter. In-proc, only two targets implement the bare
+out-of-process adapter. In-proc, two targets implement the bare
 `DeployTarget` (Name + Emit) interface — `OCITarget` (pod-overlay `add_candy:`
 Containerfile synthesis; `charly box build`/`generate` itself uses the separate
-`writeCandySteps` → `emitTasks` generator) and `PodDeployTarget` (podman
-quadlet). The deploy LIFECYCLE is the separate `UnifiedDeployTarget` interface
-(Add/Del/Test/Update/Start/…/Rebuild), whose implementers are `PodUnifiedTarget`
-and the generic `externalDeployTarget`. **All four external substrates
-(`local`/`vm`/`android`/`k8s`) route through `externalDeployTarget`** over the
-executor reverse channel, each served by its own out-of-process plugin.
+`writeCandySteps` → `emitTasks` generator) and `PodDeployTarget` (the pod
+overlay-BUILD engine) — but both are now BUILD ENGINES invoked HOST-SIDE from a
+lifecycle hook (`podSubstrateLifecycle.PrepareVenue`), NOT deploy targets
+dispatched by `ResolveTarget`. The deploy LIFECYCLE is the separate
+`UnifiedDeployTarget` interface (Add/Del/Test/Update/Start/…/Rebuild), and its
+sole implementer is the generic `externalDeployTarget`. **ALL FIVE external
+substrates (`local`/`vm`/`pod`/`k8s`/`android`) route through
+`externalDeployTarget`** over the executor reverse channel, each served by its
+own out-of-process plugin.
 `externalDeployTarget.Add` Invokes the
 provider (`OpExecute`) with the deployment's `InstallPlan` views in `op.Params`
 and a venue descriptor in `op.Env`, serving the host's executor on the go-plugin
@@ -106,9 +110,9 @@ stanza + auto-boot, plus `WaitForSSH` / `WaitForCloudInit` / `WaitForPackageLock
 
 ## Implementation notes
 
-- The pod deploy target is `PodDeployTarget` (`charly/deploy_target_pod.go`); ledger target keying uses `pod:<name>`.
+- The `pod` substrate is EXTERNAL (`deploy:pod`, candy/plugin-deploy-pod); `PodDeployTarget` (`charly/deploy_target_pod.go`) is its RETAINED overlay-BUILD engine, invoked HOST-SIDE from `podSubstrateLifecycle.PrepareVenue` (`charly/pod_deploy_lifecycle.go`). Its teardown record is keyed HOST-SIDE by `computeDeployID(name)` like every external deploy (the in-proc pod was record-free).
 - `vmNameFromDeployName` strips the `vm:` prefix. `vmEntityForAdd` / `vmEntityForLifecycle` resolve the `kind:vm` entity from a deploy node: the node's `vm:` cross-ref (`node.From`) wins, then the persisted cross-ref, then a legacy `vm:<entity>` prefix, then the deploy name itself.
-- `UnifiedDeployTarget` / `LifecycleTarget` interfaces (`charly/deploy_target_unified.go`) + the `ResolveTarget` dispatcher (`charly/unified_targets.go`) provide the full lifecycle contract (`Add` / `Del` / `Test` / `Update` / `Start` / `Stop` / `Status` / `Logs` / `Shell` / `Rebuild`). `ResolveTarget` returns an `externalDeployTarget` for every externalized substrate (local/vm/android/k8s).
+- `UnifiedDeployTarget` / `LifecycleTarget` interfaces (`charly/deploy_target_unified.go`) + the `ResolveTarget` dispatcher (`charly/unified_targets.go`) provide the full lifecycle contract (`Add` / `Del` / `Test` / `Update` / `Start` / `Stop` / `Status` / `Logs` / `Shell` / `Rebuild`). `ResolveTarget` returns an `externalDeployTarget` for every externalized substrate (local/vm/pod/k8s/android — all five).
 - Disposability is read per-`BundleNode` via `charly/deploy.go::BundleNode.IsDisposable()` (`disposable: true`, or ephemeral); it is NOT a `VmSpec` field. The disposability-as-authorization gate is NOT applied in the `charly update` path — `charly update <vm>` rebuilds on explicit invocation regardless (it only NOTES non-disposability, never refuses). `externalDeployTarget.Rebuild` delegates to the `vmSubstrateLifecycle.Rebuild` hook, which recreates the domain THEN re-applies the deploy node's layers via the shared `charly bundle add <node>` path — the same layer-apply primitive the local/pod Rebuild use (R3).
 
 The `vm` substrate brings `charly bundle add vm:<name>` online: the same
@@ -124,7 +128,7 @@ from the executor), so the reverse ops run IN THE GUEST.
 
 | File | Contents |
 |---|---|
-| `charly/deploy_target_external.go` | `externalDeployTarget` — the generic out-of-process adapter for all four external substrates; `Add` Invokes `deploy:vm` over the reverse channel, `Del` replays recorded `ReverseOps` |
+| `charly/deploy_target_external.go` | `externalDeployTarget` — the generic out-of-process adapter for all five external substrates; `Add` Invokes `deploy:vm` over the reverse channel, `Del` replays recorded `ReverseOps` |
 | `charly/deploy_substrate_lifecycle.go` | `substrateLifecycle` interface + the `registerSubstrateLifecycle` / `substrateLifecycleFor` registry |
 | `charly/vm_deploy_lifecycle.go` | `vmSubstrateLifecycle` — the host-side VM venue lifecycle hook (`PrepareVenue` / `ArtifactKey` / `PostApply` / `TeardownExecutor` / `PostTeardown` / `Start` / `Stop` / `Status` / `Logs` / `Shell` / `Rebuild`); `vmEntityForAdd` + `autoBootVmIfNeeded` |
 | `candy/plugin-deploy-vm/` | the out-of-process `deploy:vm` plugin (the plan WALK via `kit.WalkPlans` over the guest `SSHExecutor`) |

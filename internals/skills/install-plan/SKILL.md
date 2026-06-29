@@ -2,14 +2,14 @@
 name: install-plan
 description: |
   The InstallPlan IR — the shared intermediate representation consumed by the DEPLOY
-  targets: pod deploys (PodDeployTarget, incl. add_candy: overlay-Containerfile
-  synthesis via OCITarget) and external out-of-process deploys (externalDeployTarget
-  over the executor reverse channel — the local/vm/k8s/android substrates). The local
-  AND vm substrates are EXTERNAL (deploy:local via candy/plugin-deploy-local, deploy:vm
-  via candy/plugin-deploy-vm): UNLIKE k8s they DO consume the IR — the plugin walks the
-  InstallPlan over the shared out-of-process walk (charly/plugin/kit.WalkPlans), driving
-  the host for host-engine step kinds via the RunHostStep reverse-channel RPC. For vm the
-  served executor is the guest SSHExecutor, so the SAME walk runs INSIDE the guest. The
+  targets. ALL FIVE deploy substrates (local/vm/pod/k8s/android) are EXTERNAL out-of-process
+  deploys via externalDeployTarget over the executor reverse channel. The local AND vm
+  substrates DO consume the IR — the plugin walks the InstallPlan over the shared
+  out-of-process walk (charly/plugin/kit.WalkPlans), driving the host for host-engine step
+  kinds via the RunHostStep reverse-channel RPC; for vm the served executor is the guest
+  SSHExecutor, so the SAME walk runs INSIDE the guest. pod's plugin walks NOTHING — pod bakes
+  its steps INTO the image, so its substrateLifecycle hook builds the overlay container image
+  HOST-SIDE via the retained PodDeployTarget (OCITarget add_candy: synthesis). The
   k8s substrate is EXTERNAL (deploy:k8s, served out-of-process by candy/plugin-kube): it
   does NOT consume the IR — the host preresolver GENERATES a Kustomize tree
   (GenerateK8sKustomize, k8s_generate.go) and the plugin runs `kubectl apply -k`.
@@ -17,7 +17,7 @@ description: |
   MUST be invoked before reading or modifying any of:
   charly/install_plan.go, charly/install_build.go, charly/build_target_oci.go,
   charly/deploy_target_pod.go, charly/deploy_target_external.go, charly/vm_deploy_lifecycle.go,
-  charly/k8s_generate.go, charly/k8s_deploy_preresolve.go,
+  charly/pod_deploy_lifecycle.go, charly/k8s_generate.go, charly/k8s_deploy_preresolve.go,
   charly/spec/deploy_wire.go, or when adding a new step kind / deploy target / reverse-op kind.
 ---
 
@@ -27,7 +27,7 @@ description: |
 
 `charly` has several DEPLOY paths that all need to know "what does applying this layer mean?":
 
-1. **Pod deploy** (`target: pod`, default) — `charly bundle add <name> <ref>` runs the image via quadlet, optionally building an overlay Containerfile (via `OCITarget`) when `add_candy:` is set.
+1. **Pod deploy** (`pod:` substrate, default) — `charly bundle add <name> <ref>` runs the image via quadlet. Served OUT-OF-PROCESS by `candy/plugin-deploy-pod` (`deploy:pod`), but unlike the others its plugin WALKS NOTHING — pod bakes its steps INTO the image, so its `podSubstrateLifecycle` hook builds the overlay Containerfile (via `OCITarget`/`PodDeployTarget`) HOST-SIDE in `PrepareVenue` and owns the container config/start/remove lifecycle.
 2. **Local deploy** (`local:` substrate) — `charly bundle add <name> <ref>` applies the recipe to the destination machine's filesystem (`host: local` → direct shell; `host: <user@machine>` → SSH). Served OUT-OF-PROCESS by `candy/plugin-deploy-local` (`deploy:local`): `externalDeployTarget` hands the plugin this IR, the plugin walks it over the executor reverse channel (`charly/plugin/kit.WalkPlans`), and the host executor is `ShellExecutor` for `host:local`/absent or `SSHExecutor` for `host:<user@machine>` (picked by `rootExecutorForDeployNode`).
 3. **VM deploy** (`target: vm`) — `charly bundle add vm:<name> <ref>` applies the recipe inside a running VM over SSH.
 4. **Kubernetes deploy** (`target: k8s`) — `charly bundle add <name> --target k8s` emits a Kustomize base/overlays tree.
@@ -35,7 +35,7 @@ description: |
 
 All these DEPLOY paths are unified behind one IR. A pure compiler (`BuildDeployPlan`) turns `Layer + ResolvedBox + HostContext` into an `InstallPlan`; each deploy path is a `DeployTarget` consuming the plan.
 
-**Build mode is a SEPARATE path, NOT the IR.** `charly box build` / `charly box generate` emit Containerfiles via the `writeCandySteps` → `emitTasks` generator (per-verb emitters in `charly/tasks.go`), walking each layer's ops directly. It shares the compiler helpers (`resolveCascadePackages`, `compileShellSnippetSteps`, `renderLocalPkgImageInstall` — R3) with the IR, but does NOT walk an `InstallPlan` or use `OCITarget`. `OCITarget` is itself deploy-mode: `PodDeployTarget` constructs it only for `add_candy:` overlay-Containerfile synthesis (`BuildDeployPlan` is called only by the deploy command path).
+**Build mode is a SEPARATE path, NOT the IR.** `charly box build` / `charly box generate` emit Containerfiles via the `writeCandySteps` → `emitTasks` generator (per-verb emitters in `charly/tasks.go`), walking each layer's ops directly. It shares the compiler helpers (`resolveCascadePackages`, `compileShellSnippetSteps`, `renderLocalPkgImageInstall` — R3) with the IR, but does NOT walk an `InstallPlan` or use `OCITarget`. `OCITarget` is itself deploy-mode: `PodDeployTarget` constructs it only for `add_candy:` overlay-Containerfile synthesis — invoked HOST-SIDE from `podSubstrateLifecycle.PrepareVenue` (`BuildDeployPlan` is called only by the deploy command path).
 
 This skill is the single source of truth for the IR shape. Add a new step kind by editing `install_plan.go`, the compiler in `install_build.go`, and each target's `emit*` method — this skill lists every place that needs to stay in sync.
 
@@ -46,10 +46,11 @@ This skill is the single source of truth for the IR shape. Add a new step kind b
 | `charly/install_plan.go` | IR types, enums, `InstallStep` interface, `ReverseOp`, `DeployTarget` interface, `EmitOpts`, `GateEnabled` |
 | `charly/install_build.go` | `BuildDeployPlan` pure compiler: `Candy` → `InstallPlan` |
 | `charly/build_target_oci.go` | `OCITarget` — emits Containerfile text from the IR; DEPLOY-mode (the `PodDeployTarget` `add_candy:` overlay synthesizer), NOT the `charly box build`/`generate` path |
-| `charly/deploy_target_pod.go` | `PodDeployTarget` — synthesizes overlay Containerfile (via `OCITarget`) when `add_candy:` present, delegates to quadlet/start |
+| `charly/deploy_target_pod.go` | `PodDeployTarget` — the RETAINED pod overlay-BUILD engine: synthesizes the overlay Containerfile (via `OCITarget`) when `add_candy:` present, or tags the deploy-name alias when none. Invoked HOST-SIDE by `podSubstrateLifecycle.PrepareVenue` (no longer an in-proc DeployTarget dispatched by `ResolveTarget`) |
+| `charly/pod_deploy_lifecycle.go` | `podSubstrateLifecycle` — the host-side `pod` venue lifecycle hook (`substrateLifecycle`): `PrepareVenue` builds the overlay container image HOST-SIDE (via `PodDeployTarget`, the SAME core engine — nothing crosses gRPC), returns a host-local `ShellExecutor` (the plugin walks nothing); `Start/Stop/Status/Logs/Shell` shell to the CLI; `Rebuild` = `box build`+`check box`+`bundle add`+`stop`+`config`+`start`; `PostTeardown` = `charly remove` + drop overlay images. Served out-of-process by `candy/plugin-deploy-pod` (a thin acknowledgment Invoke) |
 | `charly/deploy_chain.go` | `rootExecutorForDeployNode` — picks the root `DeployExecutor` for an external `local:` deploy node (`ShellExecutor` for `host:local`/absent, `SSHExecutor` for `host:<user@machine>`); the `deploy:local` substrate itself is served out-of-process by `candy/plugin-deploy-local`, which walks the plan via `charly/plugin/kit.WalkPlans` |
 | `charly/vm_deploy_lifecycle.go` | `vmSubstrateLifecycle` — the host-side `vm` venue lifecycle hook (`substrateLifecycle`): boots the domain + builds the guest `SSHExecutor` the reverse channel serves, nested pod-in-guest orchestration, teardown bookkeeping, and the `charly vm` Start/Stop/Status/Logs/Shell/Rebuild. The plan WALK itself runs out-of-process in `candy/plugin-deploy-vm` via `kit.WalkPlans` over that guest executor (so the same walk runs inside the guest) |
-| `charly/deploy_target_external.go` | `externalDeployTarget` — Add/Test/Update/Del for an OUT-OF-PROCESS deploy provider over the executor reverse channel (`OpExecute`); the adapter all four external substrates (local/vm/android/k8s) route through; records teardown ops to the ledger keyed on `computeDeployID` |
+| `charly/deploy_target_external.go` | `externalDeployTarget` — Add/Test/Update/Del for an OUT-OF-PROCESS deploy provider over the executor reverse channel (`OpExecute`); the adapter ALL FIVE external substrates (local/vm/pod/k8s/android) route through; records teardown ops to the ledger keyed on `computeDeployID` |
 | `charly/plugin_step_external.go` | `externalPluginStepProvider` — the `StepProvider` for `StepKindExternalPlugin` (a `run: plugin: <verb>` step served by an OUT-OF-PROCESS plugin): `EmitOCI`→`Invoke(OpEmit)` is the only in-proc Emit (the image-build / pod-overlay Containerfile fragment). At DEPLOY time the step is executed via the `executeExternalPluginStep` seam — `Invoke(OpExecute)` WITH the host's executor over the reverse channel, recording the reply's dynamic `ReverseOp`s to the `CandyRecord`; the external local/vm deploy walks reach it as a host-engine step over `RunHostStep`. The `executorInvoker` capability is the discriminator |
 | `charly/spec/deploy_wire.go` | The deploy IR wire types shared with the plugin SDK: `Scope`, `ReverseOp` (+ `ReverseOpPluginScript`), `InstallPlanView`, `DeployVenue`, `DeployReply`, plus the build-time `BuildEnv` / `EmitReply` (verb/step `OpEmit`) / `BuilderResolveReply` (builder `OpResolve`: `{Stage, CopyArtifacts}`) |
 | `charly/plugin_prescan.go` | The byte-gated, additive parse pre-scan that recognizes an EXTERNAL deploy SUBSTRATE word at config-parse time, before the provider connects |
@@ -219,17 +220,15 @@ type DeployTarget interface {
 }
 ```
 
-Two in-proc targets implement the bare `DeployTarget` (Name + Emit) interface — `OCITarget` and `PodDeployTarget`. The deploy LIFECYCLE is the separate `UnifiedDeployTarget` interface (Add/Del/Test/Update/Start/Stop/Status/Logs/Shell/Rebuild), whose implementers are `PodUnifiedTarget` and the generic `externalDeployTarget`. All four external substrates — `local`, `vm`, `android`, `k8s` — route through `externalDeployTarget` over the executor reverse channel, each served by its own out-of-process plugin:
+Two in-proc targets implement the bare `DeployTarget` (Name + Emit) interface — `OCITarget` and `PodDeployTarget` — but they are now BUILD ENGINES invoked HOST-SIDE from a lifecycle hook, NOT deploy targets dispatched by `ResolveTarget`. The deploy LIFECYCLE is the separate `UnifiedDeployTarget` interface (Add/Del/Test/Update/Start/Stop/Status/Logs/Shell/Rebuild), and its sole implementer is the generic `externalDeployTarget`: ALL FIVE substrates — `local`, `vm`, `pod`, `k8s`, `android` — route through it over the executor reverse channel, each served by its own out-of-process plugin:
 
 ### `OCITarget` (`charly/build_target_oci.go`)
 Emits Containerfile text. Consumes `phases.install.container` from the embedded `charly/charly.yml` build vocabulary (falls back to `install_template:`). For multi-stage builders, delegates to `Generator.buildStageContext` for the existing `BuildStageContext` template rendering. For tasks, delegates to `Generator.emitTasks` with a temporary layer-tasks swap so the existing per-verb emitters (`emitCopy`, `emitWrite`, `emitCmd`, `emitMkdirBatch`, ...) run unchanged.
 
 Used by: pod deploys with `add_candy:` (overlay Containerfile synthesis) — the ONLY `OCITarget` construction site. `charly box build` / `charly box generate` do NOT use `OCITarget`; build-mode Containerfile emission is the separate `writeCandySteps` → `emitTasks` generator (see the Overview "Build mode is a SEPARATE path").
 
-### `PodDeployTarget` (`charly/deploy_target_pod.go`)
-Wraps the quadlet/podman pipeline with overlay-Containerfile synthesis for `add_candy:`. Picks an overlay tag deterministically from `(base-image, sorted-layer-set)`. Removed on `charly bundle del` unless `--keep-image`.
-
-Used by: `charly bundle add <name>` (default `target: pod`) with `add_candy:` present.
+### `pod` is EXTERNAL (`deploy:pod`, candy/plugin-deploy-pod) — the plugin walks NOTHING; the overlay builds HOST-SIDE
+There is no in-proc pod DeployTarget. `pod:` resolves to `externalDeployTarget` (below), served out-of-process by `candy/plugin-deploy-pod`'s `deploy:pod` provider. UNLIKE local/vm, pod does NOT walk the IR on a venue — pod bakes its install steps INTO the image at build time. Its registered `podSubstrateLifecycle` hook (`charly/pod_deploy_lifecycle.go`) builds the overlay container image HOST-SIDE in `PrepareVenue` via the RETAINED `PodDeployTarget` (the SAME core `OCITarget`/`Generator` engine, in-process — nothing crosses gRPC, exactly as vm builds its disk host-side): it synthesizes the overlay Containerfile for `add_candy:` (deterministic tag from `(base-image, sorted-layer-set)`, removed on `charly bundle del` unless `--keep-image`), or tags the deploy-name alias when there is no `add_candy:`. It returns a host-local `ShellExecutor`, so the generic `externalDeployTarget.apply` plugin walk is a clean no-op (the plugin's `Invoke` is a thin acknowledgment) and `recordVenueLedger` no-ops (a pod carries no venue-side ledger — its candies live in the image). The hook also owns the container lifecycle (`charly config`/`start`/`stop`/`status`/`logs`/`shell`; `Rebuild` = `box build`+`check box`+`bundle add`+`stop`+`config`+`start` — the `charly update` R10 fresh-rebuild gate; `PostTeardown` = `charly remove` + drop the `<name>-overlay` images). The bed runner drives a pod bed through the DEFAULT pod path (build → config → start → check-live → `charly remove`) exactly as the in-proc pod did — only `bundle add`'s overlay build internally routes through this hook now.
 
 ### `local:` is EXTERNAL (`deploy:local`, candy/plugin-deploy-local) — consumes the IR over the reverse channel
 There is no in-proc local DeployTarget. `local:` resolves to `externalDeployTarget` (below), served out-of-process by `candy/plugin-deploy-local`'s `deploy:local` provider (F1). UNLIKE k8s, the local substrate DOES consume the InstallPlan IR: the plugin walks the plan via the shared out-of-process walk (`charly/plugin/kit.WalkPlans`), groups contiguous same-`(Scope, Venue)` steps via `StepsByVenue()`, emits one heredoc per batch, and writes service units (packaged + custom), env.d files, and managed blocks (the host records the returned teardown ops to the ledger via `install_ledger.go`). The plugin owns the walk ORDERING but cannot execute the host-engine step kinds itself — `BuilderStep`, `LocalPkgInstallStep`, `SystemPackagesStep` (host renders via `DistroConfig`), act-verb `OpStep` (host registry `resolveProvisionScript`), and `ExternalPluginStep` (nested plugin dispatch) are driven on the HOST via the `RunHostStep` reverse-channel RPC (the host owns the engine/registry). The host executor is `ShellExecutor` for `host:local`/absent and `SSHExecutor` for `host:<user@machine>`, picked by `rootExecutorForDeployNode` (`charly/deploy_chain.go`). See `/charly-local:local-deploy` for the user-facing surface and `/charly-internals:local-infra` for supporting files (hostdistro, ledger, reverse_ops, shell_profile, builder_run, service_render, deploy_ref).
