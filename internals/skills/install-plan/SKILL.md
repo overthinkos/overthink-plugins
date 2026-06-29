@@ -3,16 +3,20 @@ name: install-plan
 description: |
   The InstallPlan IR — the shared intermediate representation consumed by the DEPLOY
   targets: pod deploys (PodDeployTarget, incl. add_candy: overlay-Containerfile
-  synthesis via OCITarget), local deploys (LocalDeployTarget), VM deploys
-  (VmDeployTarget over SSH), and external out-of-process deploys (externalDeployTarget
-  over the executor reverse channel). The k8s substrate is EXTERNAL (deploy:k8s, served
+  synthesis via OCITarget), VM deploys (VmDeployTarget over SSH), and external
+  out-of-process deploys (externalDeployTarget over the executor reverse channel — the
+  local/k8s/android substrates). The local substrate is EXTERNAL too (deploy:local,
+  served out-of-process by candy/plugin-deploy-local): UNLIKE k8s it DOES consume the
+  IR — the plugin walks the InstallPlan over the shared out-of-process walk
+  (charly/plugin/kit.WalkPlans), driving the host for host-engine step kinds via the
+  RunHostStep reverse-channel RPC. The k8s substrate is EXTERNAL (deploy:k8s, served
   out-of-process by candy/plugin-kube): it does NOT consume the IR — the host preresolver
   GENERATES a Kustomize tree (GenerateK8sKustomize, k8s_generate.go) and the plugin runs
   `kubectl apply -k`. Build-mode Containerfile emission is the SEPARATE writeCandySteps →
   emitTasks path.
   MUST be invoked before reading or modifying any of:
   charly/install_plan.go, charly/install_build.go, charly/build_target_oci.go,
-  charly/deploy_target_local.go, charly/deploy_target_pod.go, charly/deploy_target_vm.go,
+  charly/deploy_target_pod.go, charly/deploy_target_vm.go,
   charly/deploy_target_external.go, charly/k8s_generate.go, charly/k8s_deploy_preresolve.go,
   charly/spec/deploy_wire.go, or when adding a new step kind / deploy target / reverse-op kind.
 ---
@@ -24,7 +28,7 @@ description: |
 `charly` has several DEPLOY paths that all need to know "what does applying this layer mean?":
 
 1. **Pod deploy** (`target: pod`, default) — `charly bundle add <name> <ref>` runs the image via quadlet, optionally building an overlay Containerfile (via `OCITarget`) when `add_candy:` is set.
-2. **Local deploy** (`target: local`) — `charly bundle add <name> <ref> --target local` applies the recipe to the destination machine's filesystem (`host: local` → direct shell; `host: <user@machine>` → SSH).
+2. **Local deploy** (`local:` substrate) — `charly bundle add <name> <ref>` applies the recipe to the destination machine's filesystem (`host: local` → direct shell; `host: <user@machine>` → SSH). Served OUT-OF-PROCESS by `candy/plugin-deploy-local` (`deploy:local`): `externalDeployTarget` hands the plugin this IR, the plugin walks it over the executor reverse channel (`charly/plugin/kit.WalkPlans`), and the host executor is `ShellExecutor` for `host:local`/absent or `SSHExecutor` for `host:<user@machine>` (picked by `rootExecutorForDeployNode`).
 3. **VM deploy** (`target: vm`) — `charly bundle add vm:<name> <ref>` applies the recipe inside a running VM over SSH.
 4. **Kubernetes deploy** (`target: k8s`) — `charly bundle add <name> --target k8s` emits a Kustomize base/overlays tree.
 5. **External out-of-process deploy** — an external deploy-substrate plugin (`externalDeployTarget`) applies on the host venue over the executor reverse channel (`OpExecute`); see "External (out-of-process) deploy target" below.
@@ -43,7 +47,7 @@ This skill is the single source of truth for the IR shape. Add a new step kind b
 | `charly/install_build.go` | `BuildDeployPlan` pure compiler: `Candy` → `InstallPlan` |
 | `charly/build_target_oci.go` | `OCITarget` — emits Containerfile text from the IR; DEPLOY-mode (the `PodDeployTarget` `add_candy:` overlay synthesizer), NOT the `charly box build`/`generate` path |
 | `charly/deploy_target_pod.go` | `PodDeployTarget` — synthesizes overlay Containerfile (via `OCITarget`) when `add_candy:` present, delegates to quadlet/start |
-| `charly/deploy_target_local.go` | `LocalDeployTarget` — executes plan on the destination machine via shell + `podman run <builder>` |
+| `charly/deploy_chain.go` | `rootExecutorForDeployNode` — picks the root `DeployExecutor` for an external `local:` deploy node (`ShellExecutor` for `host:local`/absent, `SSHExecutor` for `host:<user@machine>`); the `deploy:local` substrate itself is served out-of-process by `candy/plugin-deploy-local`, which walks the plan via `charly/plugin/kit.WalkPlans` |
 | `charly/deploy_target_vm.go` | `VmDeployTarget` — executes plan inside a running VM via SSH + scp |
 | `charly/deploy_target_external.go` | `externalDeployTarget` — Add/Test/Update/Del for an OUT-OF-PROCESS deploy provider over the executor reverse channel (`OpExecute`); records teardown ops to the ledger keyed on `computeDeployID` |
 | `charly/plugin_step_external.go` | `externalPluginStepProvider` — the `StepProvider` for `StepKindExternalPlugin` (a `run: plugin: <verb>` step served by an OUT-OF-PROCESS plugin): `EmitOCI`→`Invoke(OpEmit)` fragment, `EmitLocal`/`EmitVM`→`Invoke(OpExecute)` over the executor reverse channel; the `executorInvoker` discriminator + `executeExternalPluginStep` (records the reply's dynamic `ReverseOp`s to the `CandyRecord`) |
@@ -51,7 +55,7 @@ This skill is the single source of truth for the IR shape. Add a new step kind b
 | `charly/plugin_prescan.go` | The byte-gated, additive parse pre-scan that recognizes an EXTERNAL deploy SUBSTRATE word at config-parse time, before the provider connects |
 | `charly/k8s_generate.go` | `GenerateK8sKustomize` — emits the Kustomize base/overlays tree from `(Capabilities, BundleNode, K8sSpec)`. Stays in core (egress-gated; second consumer `charly bundle from-box --target k8s`); called by the k8s deploy preresolver + from-box, NOT a `DeployTarget` |
 | `charly/k8s_deploy_preresolve.go` | the HOST-side `deploy:k8s` preresolver (F1) — resolves the image Capabilities + the kind:k8s cluster template, runs `GenerateK8sKustomize`, and ships the overlay path in `DeployVenue.Substrate` (`spec.K8sDeployVenue`) for the out-of-process candy/plugin-kube `deploy:k8s` provider |
-| `charly/deploy_executor*.go` | `DeployExecutor` interface + `ShellExecutor` + `SSHExecutor` — shell + file-copy abstraction shared by Local/VM targets |
+| `charly/deploy_executor*.go` | `DeployExecutor` interface + `ShellExecutor` + `SSHExecutor` — shell + file-copy abstraction shared by the external `local:` deploy path and `VmDeployTarget` |
 | `charly/install_plan_test.go` | IR unit tests (scope/venue/gate/reverse derivations) |
 | `charly/install_build_test.go` | Compiler integration tests (ripgrep, dev-tools, pixi layer) |
 
@@ -142,7 +146,7 @@ separate, check-time concern handled by `charly/check_image_preflight.go`
 | `RepoChangeStep` | Format, File, Content, Checksum, CandyName | HostNative | Always system |
 | `ApkInstallStep` | Packages (apk specs), CandyName, CandyDir | HostNative | Always system. Only `target: android` executes it; every other target records a skip. |
 | `LocalPkgInstallStep` | PkgbuildRef, CandyName, CandyDir, ProjectDir, Format, LocalPkg (`*LocalPkgDef`) | HostNative | Always system. Compiled from a layer's per-format `localpkg:` map (the `charly` layer's `{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`) at "step 2.5" (before tasks); `compileLocalPkgStep` resolves the target distro's format FIRST (`DistroDef.LocalPkgFormat`), then the layer's source for that format, so `Format` + `LocalPkg` come from the `format.<fmt>.local_pkg:` block in the embedded `charly/charly.yml` — EVERY command rendered from config, no hardcoded build/install/glob literals. On a localpkg-capable deploy target (`target: local` / `target: vm`) the HOST builds the format's source via `LocalPkg.BuildTemplate` (pac → `makepkg`; rpm/deb → a distro-matched podman container) into `LocalPkg.PkgGlob` artifacts, then installs them onto the target via `LocalPkg.InstallTemplate` — the format's AUTO-RESOLVING local-file install (`pacman -U` / `dnf install` / `apt-get install`), which pulls the package's repo deps automatically. There is NO dependency-closure builder (the aur-LAYER deploy path still reuses the shared `buildDepPkgsOnHost`/`transferAndInstallPkgs` leg, R3). `LocalPkg.Probe` gates the install leg; `LocalPkg.SourceSentinel` (`PKGBUILD`/`*.spec`/`debian/control`) marks the source dir. `resolveLocalPkgDir` walks up from `ProjectDir`, so a consumer nested under `box/<distro>` finds the superproject `pkg/<fmt>`. At IMAGE build the install is **mode-switched by box type** (unified in `renderLocalPkgImageInstall`, shared by `OCITarget` + `generate.go writeCandySteps` — R3): a PRODUCTION box DOWNLOADS the published release (`LocalPkg.DownloadTemplate`), while a DISPOSABLE check bed BUILDS the package from LOCAL in-development source and COPYs it in — see "Check-vs-production charly toolchain" below. Skipped only on a distro with no localpkg-capable format (the layer's task fallback). Machinery: `charly/localpkg.go`; config: the embedded `charly/charly.yml` `format.<fmt>.local_pkg:` block. |
-| `RebootStep` | CandyName | HostNative | Always system; `Reverse()` empty. Emitted last when a layer sets `reboot: true`. Only `VmDeployTarget` acts on it (reboot guest + wait for return); OCI/pod/k8s skip; `LocalDeployTarget` skips + warns (never reboots the operator host). |
+| `RebootStep` | CandyName | HostNative | Always system; `Reverse()` empty. Emitted last when a layer sets `reboot: true`. Only `VmDeployTarget` acts on it (reboot guest + wait for return); OCI/pod/k8s skip; the external `local:` deploy skips + warns (never reboots the operator host). |
 | `ExternalPluginStep` | Op (the `run: plugin:` op — verb word + `plugin_input` + `RunAs`), CandyName, ResolvedUser, Distros | HostNative | From ResolvedUser (`opStepScope`: root/empty → system; else user). `Reverse()` static-nil — teardown ops are recorded DYNAMICALLY from the plugin's `OpExecute` reply. A `run: plugin: <verb>` step whose verb is served by an EXTERNAL (out-of-process) plugin — see "ExternalPluginStep notes" below. |
 
 ### Check-vs-production charly toolchain (the `--dev-local-pkg` distinction)
@@ -170,7 +174,7 @@ bed always exercises the in-development charly; a real box ships the released on
 **`ShellSnippetStep` notes:**
 - Compiled by `compileShellSnippetSteps` in `install_build.go` — applies the per-shell-wins-over-generic selection rule from `layer.Shell()`.
 - OCITarget emits a `RUN mkdir -p ... && cat > <dest> <<EOF` heredoc with a sha256-derived end-marker (anti-collision).
-- LocalDeployTarget / VmDeployTarget probe `command -v <shell>` once at the top of `Emit()`; absent shells become VenueSkip-style no-ops with a logged reason. UseDropin=true → whole-file write; UseDropin=false → `replaceOrAppendManagedBlock` against the existing rc file with a per-layer marker.
+- The `local:` (external plugin) and `vm:` (`VmDeployTarget`) deploy walks probe `command -v <shell>` once at the top of the walk; absent shells become VenueSkip-style no-ops with a logged reason. UseDropin=true → whole-file write; UseDropin=false → `replaceOrAppendManagedBlock` against the existing rc file with a per-layer marker.
 - Reverse: `ReverseOpRmFileSystem` / `ReverseOpRmFileUser` for drop-ins; `ReverseOpRemoveManaged` (with `Extra["marker"]=CandyName`) for managed-block append.
 - Round-trip: `LabelShell` (`ai.opencharly.shell`) carries the merged set; `CollectShell` builds it at `charly box build` time, `ExtractMetadata` parses it at deploy time, `MergeDeployShell` overlays charly.yml entries by id.
 
@@ -183,7 +187,7 @@ bed always exercises the in-development charly; a real box ships the released on
 - **`OpExecute` is the deploy-context counterpart of `OpEmit` (build).** Same verb-step, two legs: bake a Containerfile fragment at build (`OpEmit`), or execute the effect on a live `local:`/`vm:` target at deploy (`OpExecute`) — picked by venue, placement-agnostic.
 - **Self-registers** via `registerDedicatedBuiltin(externalPluginStepProvider{})`, like every other dedicated step provider; the `StepProvider` it implements lives in `provider_step.go`.
 
-Each step's `Reverse()` emits typed `ReverseOp` values. Adding a step kind means: (a) define the struct in `install_plan.go`, (b) decide its Scope/Venue/Gate/Reverse, (c) add a case to each target's step dispatch (`emit*` in OCITarget; `exec*` in LocalDeployTarget), (d) ensure the compiler in `install_build.go` emits it.
+Each step's `Reverse()` emits typed `ReverseOp` values. Adding a step kind means: (a) define the struct in `install_plan.go`, (b) decide its Scope/Venue/Gate/Reverse, (c) add a case to each target's step dispatch (`emit*` in OCITarget; the shared `charly/plugin/kit.WalkPlans` for the plugin-renderable legs, plus `RunHostStep` if it is a host-engine kind), (d) ensure the compiler in `install_build.go` emits it.
 
 ## The compiler — `BuildDeployPlan`
 
@@ -193,7 +197,7 @@ func BuildDeployPlan(layer *Candy, img *ResolvedBox, hostCtx HostContext) (*Inst
 
 Pure — no I/O, no side effects. Given the same inputs, produces the same plan. Called ONLY by the deploy command path (`bundle_add_cmd.go`), never by `charly box build`/`generate`:
 - Once per layer during a pod deploy with `add_candy:` (PodDeployTarget filters to `add_candy:`, OCITarget walks the combined output for overlay synthesis).
-- Once per layer during a local / VM / external deploy (the target walks the combined output).
+- Once per layer during a VM or external deploy (local/k8s/android) — the target walks the combined output.
 
 Pass `HostContext{Target: "host", Distro: ..., GlibcVersion: ...}` for host compilation; zero-value for the pod-overlay container compilation.
 
@@ -215,7 +219,7 @@ type DeployTarget interface {
 }
 ```
 
-Five implementations:
+Four implementations (`OCITarget`, `PodDeployTarget`, `VmDeployTarget`, `externalDeployTarget`):
 
 ### `OCITarget` (`charly/build_target_oci.go`)
 Emits Containerfile text. Consumes `phases.install.container` from the embedded `charly/charly.yml` build vocabulary (falls back to `install_template:`). For multi-stage builders, delegates to `Generator.buildStageContext` for the existing `BuildStageContext` template rendering. For tasks, delegates to `Generator.emitTasks` with a temporary layer-tasks swap so the existing per-verb emitters (`emitCopy`, `emitWrite`, `emitCmd`, `emitMkdirBatch`, ...) run unchanged.
@@ -227,13 +231,11 @@ Wraps the quadlet/podman pipeline with overlay-Containerfile synthesis for `add_
 
 Used by: `charly bundle add <name>` (default `target: pod`) with `add_candy:` present.
 
-### `LocalDeployTarget` (`charly/deploy_target_local.go`)
-Walks the IR; groups contiguous same-`(Scope, Venue)` steps via `plan.StepsByVenue()`; emits one heredoc per batch. Full executor: writes service units (packaged + custom), env.d files, managed blocks, ledger entries. Invokes builder containers via `builder_run.go` for `VenueContainerBuilder` steps. Gates (`GateEnabled`) applied per step; skipped steps logged.
-
-See `/charly-internals:local-infra` for supporting files (hostdistro, ledger, reverse_ops, shell_profile, builder_run, service_render, deploy_ref).
+### `local:` is EXTERNAL (`deploy:local`, candy/plugin-deploy-local) — consumes the IR over the reverse channel
+There is no in-proc local DeployTarget. `local:` resolves to `externalDeployTarget` (below), served out-of-process by `candy/plugin-deploy-local`'s `deploy:local` provider (F1). UNLIKE k8s, the local substrate DOES consume the InstallPlan IR: the plugin walks the plan via the shared out-of-process walk (`charly/plugin/kit.WalkPlans`), groups contiguous same-`(Scope, Venue)` steps via `StepsByVenue()`, emits one heredoc per batch, and writes service units (packaged + custom), env.d files, and managed blocks (the host records the returned teardown ops to the ledger via `install_ledger.go`). The plugin owns the walk ORDERING but cannot execute the host-engine step kinds itself — `BuilderStep`, `LocalPkgInstallStep`, `SystemPackagesStep` (host renders via `DistroConfig`), act-verb `OpStep` (host registry `resolveProvisionScript`), and `ExternalPluginStep` (nested plugin dispatch) are driven on the HOST via the `RunHostStep` reverse-channel RPC (the host owns the engine/registry). The host executor is `ShellExecutor` for `host:local`/absent and `SSHExecutor` for `host:<user@machine>`, picked by `rootExecutorForDeployNode` (`charly/deploy_chain.go`). See `/charly-local:local-deploy` for the user-facing surface and `/charly-internals:local-infra` for supporting files (hostdistro, ledger, reverse_ops, shell_profile, builder_run, service_render, deploy_ref).
 
 ### `VmDeployTarget` (`charly/deploy_target_vm.go`)
-Same IR walking as LocalDeployTarget, but shell bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` instead of local `sudo bash`. Ledger writes land on the **guest** filesystem; teardown runs in the guest via SSH. Preflight: `WaitForSSH` (120s) → `WaitForCloudInit` (cloud_image sources only) → `EnsureCharlyInGuest` (scp the `charly` binary per `VmCharlyInstall.Strategy`) → ensure guest ledger dir exists.
+Same IR walking as a local deploy, but shell bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` instead of local `sudo bash`. Ledger writes land on the **guest** filesystem; teardown runs in the guest via SSH. Preflight: `WaitForSSH` (120s) → `WaitForCloudInit` (cloud_image sources only) → `EnsureCharlyInGuest` (scp the `charly` binary per `VmCharlyInstall.Strategy`) → ensure guest ledger dir exists.
 
 `DeployExecutor` is the abstraction that lets the same Emit logic retarget from local → SSH. `ShellExecutor` wraps local `bash -c` + file copy; `SSHExecutor` wraps ssh/scp via `golang.org/x/crypto/ssh` with persistent connection. Builder-container invocations (`VenueContainerBuilder` steps) run on the **host**, then artifacts scp into the guest — guests don't need podman installed.
 
@@ -250,7 +252,7 @@ The `UnifiedDeployTarget` adapter for an OUT-OF-PROCESS deploy provider (a `grpc
 - **Update** re-`Invoke`s `OpExecute` with fresh plans — an idempotent re-Add (the candy's ledger `ReverseOps` are REPLACED, not appended).
 - **Del** replays the RECORDED `ReverseOps` from the ledger (no plugin call) via the shared `teardownHostDeploy` — the record-and-replay invariant: only recorded ops are reversed, never recomputed.
 
-The ledger key is `computeDeployID(name, nil, nil)` — derived from the deploy name alone (so the host-venue `Kind()=="host"` never collides with a real host deploy on the ledger scan). A bed/deploy that uses an external deploy SUBSTRATE word is recognized at config-PARSE time by the byte-gated, additive declaration pre-scan (`plugin_prescan.go`) before the provider connects; `charly check live` / `charly check <verb>` route an external deploy host-side via the shared `checkLocalTarget` classifier (`check_venue.go`), the SAME path a `target: local` deploy takes (R3). The wire types (`InstallPlanView`, `DeployVenue`, `DeployReply`, `ReverseOp`, `ReverseOpPluginScript`) live in `charly/spec/deploy_wire.go`, SDK-importable so an out-of-tree deploy plugin constructs the same structs (R3).
+The ledger key is `computeDeployID(name, nil, nil)` — derived from the deploy name alone (so the host-venue `Kind()=="host"` never collides with another host-venue deploy on the ledger scan). A bed/deploy that uses an external deploy SUBSTRATE word is recognized at config-PARSE time by the byte-gated, additive declaration pre-scan (`plugin_prescan.go`) before the provider connects; `charly check live` / `charly check <verb>` route an external deploy host-side via the shared `checkLocalTarget` classifier (`check_venue.go`) — the host-venue path the externalized `local:` substrate itself takes (R3). The wire types (`InstallPlanView`, `DeployVenue`, `DeployReply`, `ReverseOp`, `ReverseOpPluginScript`) live in `charly/spec/deploy_wire.go`, SDK-importable so an out-of-tree deploy plugin constructs the same structs (R3).
 
 ## Op selectors at build vs deploy
 
@@ -263,7 +265,7 @@ A provider's `Invoke` carries an `op.Op` selector (`charly/provider.go`). Three 
 
 ## `StepBatch` batching
 
-`InstallPlan.StepsByVenue()` partitions `Steps` into contiguous same-`(Scope, Venue)` runs. LocalDeployTarget uses this to emit one shell heredoc per batch:
+`InstallPlan.StepsByVenue()` partitions `Steps` into contiguous same-`(Scope, Venue)` runs. The `local:`/`vm:` deploy walk uses this to emit one shell heredoc per batch:
 
 | Batch | Emission form |
 |---|---|
@@ -286,7 +288,7 @@ token; `compileShellSnippetSteps` emits it for deploy targets (`hostCtx.Target`
 | Target | Home used |
 |---|---|
 | `OCITarget` (pod-overlay image build) | `img.Home` (the image's runtime home) |
-| `LocalDeployTarget` | host home (`ShellExecutor.ResolveHome`) |
+| external `local:` deploy | host home (`ShellExecutor.ResolveHome`) |
 | `VmDeployTarget` | GUEST home (`SSHExecutor.ResolveHome`) |
 
 `ResolveHome` substitutes the token in `ShellHookStep` (EnvVars + PathAdd),
@@ -337,7 +339,7 @@ CLI flags on `BundleAddCmd` / `BundleDelCmd` populate this struct; each target r
 When you add a step kind, add:
 1. A scope/venue/gate/reverse unit test in `install_plan_test.go`.
 2. An integration test in `install_build_test.go` exercising the compiler path.
-3. Target-specific tests in `build_target_oci_test.go` and `deploy_target_local_test.go`.
+3. Target-specific tests in `build_target_oci_test.go`, the shared out-of-process walk in `charly/plugin/kit/walk_test.go`, and the host-engine channel in `plugin_executor_hoststep_test.go`.
 
 ## Cross-References
 

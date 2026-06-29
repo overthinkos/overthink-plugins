@@ -13,7 +13,7 @@ description: |
 - `host: local` (literal) or absent → `ShellExecutor` (run on this machine).
 - Anything else → `SSHExecutor` (ssh(1) reads `~/.ssh/config` + ssh-agent for keys, host-key checking, options).
 
-The same `InstallPlan` IR that drives container deploys (via `PodDeployTarget`, incl. `add_candy:` overlay synthesis through `OCITarget`) is consumed by `LocalDeployTarget`, which translates each IR step into shell commands, `podman run <builder>` invocations for compile-needing work, and systemd unit writes. (`charly box build` itself emits Containerfiles via the separate `writeCandySteps` → `emitTasks` generator, not the IR — see `/charly-internals:install-plan`.)
+The same `InstallPlan` IR that drives container deploys (via `PodDeployTarget`, incl. `add_candy:` overlay synthesis through `OCITarget`) is consumed by the external `deploy:local` plugin (`candy/plugin-deploy-local`), which `externalDeployTarget` hands the plan over the executor reverse channel; the plugin walks it via the shared out-of-process walk (`charly/plugin/kit.WalkPlans`), translating each IR step into shell commands, `podman run <builder>` invocations for compile-needing work, and systemd unit writes. The step kinds the plugin cannot render itself (`BuilderStep`, `LocalPkgInstallStep`, `SystemPackagesStep`, act-verb `OpStep`, `ExternalPluginStep`) are driven on the HOST via the `RunHostStep` reverse-channel RPC. (`charly box build` itself emits Containerfiles via the separate `writeCandySteps` → `emitTasks` generator, not the IR — see `/charly-internals:install-plan`.)
 
 The deploy applies host packages + configs ONLY. Container images required for `charly check run` / `charly check live` are ensured by the check preflight (see `/charly-check:check` "Image preflight"), not by the deploy. Deploys (any target) emit zero image-pull / image-build steps — that's the CLAUDE.md "Deploy fetches NOTHING speculative" Key Rule, codified at the type level. Migration of legacy `image:` blocks: `charly migrate` (idempotent).
 
@@ -26,7 +26,7 @@ Use cases:
 
 charly contains **zero** custom SSH-key resolution. We do not read `~/.ssh/config`, we do not detect ssh-agent, we do not prompt for keys. `ssh(1)` does it all. Configure your destinations via `~/.ssh/config` `Host` stanzas, load keys into `ssh-agent`, and `charly` shells out to `ssh` with no `-i` / `-o StrictHostKeyChecking=` / `-o UserKnownHostsFile=` overrides.
 
-For VM destinations, `charly vm create <name>` writes a managed Host stanza into `~/.config/charly/ssh_config` (one per VM, fenced with `# opencharly:begin` markers) and ensures your `~/.ssh/config` has `Include ~/.config/charly/ssh_config` (also managed). After that, `ssh charly-<vmname>` works from any terminal — and `LocalDeployTarget` constructs `&SSHExecutor{Host: "charly-<vmname>"}` with no User/Port/Key.
+For VM destinations, `charly vm create <name>` writes a managed Host stanza into `~/.config/charly/ssh_config` (one per VM, fenced with `# opencharly:begin` markers) and ensures your `~/.ssh/config` has `Include ~/.config/charly/ssh_config` (also managed). After that, `ssh charly-<vmname>` works from any terminal — and the local deploy path constructs `&SSHExecutor{Host: "charly-<vmname>"}` (via `rootExecutorForDeployNode`) with no User/Port/Key; ssh(1) resolves them from the config.
 
 ## Quick Reference
 
@@ -153,7 +153,7 @@ Remote `target: local` deploys assume **passwordless sudo** on the destination. 
 - `/charly-image:layer` — `service:` schema rendered as systemd units on local-target deploys.
 - `/charly-vm:vm` — managed ssh-config fragment writen on `charly vm create`.
 - `/charly-check:check` — `--verify` re-runs candy `check:` against the deploy post-install.
-- `/charly-internals:install-plan` — shared IR consumed by `LocalDeployTarget`.
+- `/charly-internals:install-plan` — shared IR consumed by the external `deploy:local` plugin over the executor reverse channel.
 
 ## When to Use This Skill
 

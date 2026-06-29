@@ -83,7 +83,7 @@ The inheritance rule lives here: `distro:`/`build:` are VALUES → inherited acr
 
 ### VM target (fourth DeployTarget)
 
-`VmDeployTarget` (`charly/deploy_target_vm.go`) executes InstallPlans inside a running VM over SSH. Same IR as LocalDeployTarget, but bash bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` (`charly/deploy_executor_ssh.go`). Ledger writes land on the **guest** filesystem. The `DeployExecutor` interface (`charly/deploy_executor.go`) decouples "how shell commands run" from the target walking logic — `ShellExecutor` + `SSHExecutor` are the two implementations.
+`VmDeployTarget` (`charly/deploy_target_vm.go`) executes InstallPlans inside a running VM over SSH. Same IR as the external `local:` deploy, but bash bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` (`charly/deploy_executor_ssh.go`). Ledger writes land on the **guest** filesystem. The `DeployExecutor` interface (`charly/deploy_executor.go`) decouples "how shell commands run" from the target walking logic — `ShellExecutor` + `SSHExecutor` are the two implementations.
 
 `charly bundle add vm:<name>` dispatches through `deploy_add_cmd.go::dispatchNode` → `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del` (no per-kind dispatch function); `deploy_add_cmd_vm.go` carries the VM-only helpers (`deployNestedPodsInGuest`, `buildVmReverseRunner`, `vmNameFromDeployName`). Full architecture + preflight flow lives in `/charly-internals:vm-deploy-target`.
 
@@ -112,7 +112,7 @@ Deploy-mode commands (`charly config`, `charly start`, `charly stop`, `charly up
 
 ### InstallPlan IR — the shared intermediate representation
 
-The DEPLOY paths (pod/local/vm + external) route through a shared IR; build-mode Containerfile emission is a SEPARATE generator (`writeCandySteps` → `emitTasks`, reading each layer's ops directly), NOT the IR. The k8s substrate is EXTERNAL and does NOT consume the IR — it generates a Kustomize tree host-side (see "Kubernetes substrate" above). Flow:
+The DEPLOY paths (pod/vm + external [local/k8s/android]) route through a shared IR; build-mode Containerfile emission is a SEPARATE generator (`writeCandySteps` → `emitTasks`, reading each layer's ops directly), NOT the IR. The k8s substrate is EXTERNAL and does NOT consume the IR — it generates a Kustomize tree host-side (see "Kubernetes substrate" above). Flow:
 
 ```
 Layer + ResolvedBox + HostContext
@@ -121,11 +121,12 @@ Layer + ResolvedBox + HostContext
     → DeployTarget.Emit / lifecycle
        ├── OCITarget (build_target_oci.go)          → Containerfile text (pod-overlay add_candy: synthesis)
        ├── PodDeployTarget (deploy_target_pod.go)   → overlay + quadlet
-       ├── LocalDeployTarget (deploy_target_local.go) → local shell execution
        ├── VmDeployTarget (deploy_target_vm.go)     → SSH-wrapped shell in the guest
        └── externalDeployTarget (deploy_target_external.go) → out-of-process plugin over the OpExecute reverse channel
-                                                              (incl. deploy:k8s — host preresolver generates the
-                                                              Kustomize tree, plugin runs kubectl apply -k)
+                                                              (deploy:local — candy/plugin-deploy-local walks the IR
+                                                              via kit.WalkPlans, host-engine steps via RunHostStep;
+                                                              deploy:k8s — host preresolver generates the Kustomize
+                                                              tree, plugin runs kubectl apply -k; deploy:android)
 ```
 
 `OCITarget` is constructed only by `PodDeployTarget`; `charly box build`/`generate` emit via the `writeCandySteps` → `emitTasks` generator (`generate.go` + `tasks.go`), sharing the package-cascade / shell-snippet / localpkg compiler helpers with the IR. Full reference lives in **`/charly-internals:install-plan`** — go there before touching any of those files. Supporting Go files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref, hostdistro, migrate_services_tool) are covered in **`/charly-internals:local-infra`**.

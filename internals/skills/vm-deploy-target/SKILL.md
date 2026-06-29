@@ -1,12 +1,14 @@
 ---
 name: vm-deploy-target
 description: |
-  VmDeployTarget is the 4th DeployTarget implementer (after OCITarget,
-  PodDeployTarget, LocalDeployTarget; externalDeployTarget is the 5th — the k8s
-  substrate is now external, deploy:k8s via candy/plugin-kube). Applies an
-  InstallPlan inside a running VM over SSH. Covers DeployExecutor interface,
-  SSHExecutor, ShellExecutor, VmDeployState persistence, and the guest-side
-  ledger.
+  VmDeployTarget is the in-proc DeployTarget implementer that applies an
+  InstallPlan inside a running VM over SSH. The in-proc DeployTarget set is
+  OCITarget, PodDeployTarget, VmDeployTarget, externalDeployTarget; the
+  local/k8s/android substrates are external out-of-process plugins served via
+  externalDeployTarget over the reverse channel (deploy:local via
+  candy/plugin-deploy-local, deploy:k8s via candy/plugin-kube). Covers
+  DeployExecutor interface, SSHExecutor, ShellExecutor, VmDeployState persistence,
+  and the guest-side ledger.
   Source: charly/deploy_target_vm.go, charly/deploy_executor*.go, charly/deploy_add_cmd_vm.go.
   MUST be invoked before editing VM-target deploy code.
 ---
@@ -18,18 +20,18 @@ description: |
 - The pod deploy target is `PodDeployTarget` (`charly/deploy_target_pod.go`); ledger target keying uses `pod:<name>`.
 - `vmNameFromDeployName` strips the `vm:` prefix. The dispatch upstream (`deploy_add_cmd.go`) rewrites a plain deploy key like `check-arch-vm` to `vm:<vm-name>` before resolving via `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del`, so internal VM code always sees the prefixed form.
 - `UnifiedDeployTarget` / `LifecycleTarget` interfaces (`charly/deploy_target_unified.go`) + the `ResolveTarget` dispatcher (`charly/unified_targets.go`) provide the full lifecycle contract (`Add` / `Del` / `Test` / `Update` / `Start` / `Stop` / `Status` / `Logs` / `Shell` / `Rebuild`).
-- Disposability is read per-`BundleNode` via `charly/deploy.go::BundleNode.IsDisposable()` (`disposable: true`, or ephemeral); it is NOT a `VmSpec` field. The disposability-as-authorization gate is NOT applied in the `charly update` path — `charly update <vm>` rebuilds on explicit invocation regardless (it only NOTES non-disposability, never refuses). `VmUnifiedTarget.Rebuild` (`charly/unified_targets_vm.go`) recreates the domain THEN re-applies the deploy node's layers via the shared `charly bundle add <node>` path — the same layer-apply primitive `LocalUnifiedTarget`/`PodUnifiedTarget` Rebuild use (R3).
+- Disposability is read per-`BundleNode` via `charly/deploy.go::BundleNode.IsDisposable()` (`disposable: true`, or ephemeral); it is NOT a `VmSpec` field. The disposability-as-authorization gate is NOT applied in the `charly update` path — `charly update <vm>` rebuilds on explicit invocation regardless (it only NOTES non-disposability, never refuses). `VmUnifiedTarget.Rebuild` (`charly/unified_targets_vm.go`) recreates the domain THEN re-applies the deploy node's layers via the shared `charly bundle add <node>` path — the same layer-apply primitive `PodUnifiedTarget`/`externalDeployTarget` Rebuild use (R3).
 
-`VmDeployTarget` brings `charly bundle add vm:<name>` online: the same `InstallPlan` IR that drives pod builds and host deploys now runs **inside a VM** over SSH. Shell bodies that `LocalDeployTarget` would exec via local `sudo bash -s` are instead exec'd via `ssh guest 'sudo bash -s'` through an `SSHExecutor`. Ledger writes land on the **guest** filesystem under the guest user's `~/.config/opencharly/installed/`; teardown runs in the guest via SSH as well.
+`VmDeployTarget` brings `charly bundle add vm:<name>` online: the same `InstallPlan` IR that drives pod builds and host deploys now runs **inside a VM** over SSH. Shell bodies that a `local:` deploy would exec via local `sudo bash -s` are instead exec'd via `ssh guest 'sudo bash -s'` through an `SSHExecutor`. Ledger writes land on the **guest** filesystem under the guest user's `~/.config/opencharly/installed/`; teardown runs in the guest via SSH as well.
 
-`VmDeployTarget` is the 4th `DeployTarget` interface implementer — after `OCITarget` (pod-overlay `add_candy:` Containerfile synthesis; `charly box build`/`generate` itself uses the separate `writeCandySteps` → `emitTasks` generator), `PodDeployTarget` (podman quadlet), and `LocalDeployTarget` (local filesystem). `externalDeployTarget` (the out-of-process substrate adapter — incl. `deploy:k8s`) is the 5th; the k8s substrate no longer has an in-proc DeployTarget (it generates a Kustomize tree host-side and applies it via candy/plugin-kube). See `/charly-internals:install-plan` for the shared IR.
+`VmDeployTarget` is one of the four `DeployTarget` interface implementers — `OCITarget` (pod-overlay `add_candy:` Containerfile synthesis; `charly box build`/`generate` itself uses the separate `writeCandySteps` → `emitTasks` generator), `PodDeployTarget` (podman quadlet), `VmDeployTarget` (VM over SSH), and `externalDeployTarget` (the out-of-process substrate adapter). The local/k8s/android substrates are external — served via `externalDeployTarget` over the reverse channel: the `local:` substrate is `candy/plugin-deploy-local` (which walks the InstallPlan IR), the k8s substrate generates a Kustomize tree host-side and applies it via candy/plugin-kube. See `/charly-internals:install-plan` for the shared IR.
 
 ## Source files
 
 | File | Contents |
 |---|---|
 | `charly/deploy_target_vm.go` | `VmDeployTarget` struct + `Emit` flow |
-| `charly/deploy_executor.go` | `DeployExecutor` interface (RunShell, Scp, Close) + `ShellExecutor` — local shell exec (reused by `LocalDeployTarget` for the builder-image step) |
+| `charly/deploy_executor.go` | `DeployExecutor` interface (RunShell, Scp, Close) + `ShellExecutor` — local shell exec (used host-side for the builder-image step and the external `local:` deploy) |
 | `charly/deploy_executor_ssh.go` | `SSHExecutor` — ssh client with passt-friendly timeouts + WaitForSSH + WaitForCloudInit |
 | `charly/deploy_add_cmd_vm.go` | VM-only deploy helpers (`deployNestedPodsInGuest`, `buildVmReverseRunner`, `vmNameFromDeployName`); `charly bundle add/del vm:<name>` dispatches through `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del` |
 | `charly/vm_create_spec.go` | `VmCreateCmd.runVmSpecCreate` — prereq: VM must be created before deploy |
@@ -46,7 +48,7 @@ type DeployExecutor interface {
 
 Two implementations:
 
-- `ShellExecutor` — `bash -c <script>` / file copy. Used by `LocalDeployTarget` for container-builder invocations and by the dry-run path of any target.
+- `ShellExecutor` — `bash -c <script>` / file copy. Used host-side for container-builder invocations (the external `local:` deploy + the VM builder step) and by the dry-run path of any target.
 - `SSHExecutor` — ssh/scp via `golang.org/x/crypto/ssh`. Used exclusively by `VmDeployTarget`. Carries Host/Port/User/KeyPath + maintains a persistent connection across multiple shell invocations.
 
 **Name choice**: the interface is `DeployExecutor` — a deploy-scoped name kept distinct from the check runner's own execution types; likewise `deployShellQuote` (not `shellQuote`) avoids a clash in `wl.go`.
@@ -60,7 +62,7 @@ Five preflight steps before walking plans:
 3. **EnsureCharlyInGuest.** Runs the `VmCharlyInstall.Strategy` state machine (see `/charly-internals:cloud-init-renderer`).
 4. **Ensure guest ledger dir exists.** `ssh -- mkdir -p ~/.config/opencharly/installed/{deploys,layers}`.
 5. **Resolve the guest home** once (`t.Exec.ResolveHome(ctx, "")`) and cache it on `t.guestHome`. Every home-bearing step field is resolved against THIS home, not the host operator's — see below.
-6. **Walk plans.** Same batched `(Scope, Venue)` logic as `LocalDeployTarget`, but with `sudo bash -s` wrapped in `ssh`. See `/charly-local:local-deploy` for the grouping rules.
+6. **Walk plans.** Same batched `(Scope, Venue)` logic as the external `local:` deploy walk, but with `sudo bash -s` wrapped in `ssh`. See `/charly-local:local-deploy` for the grouping rules.
 7. **Write the env.d-sourcing managed block** into the guest's detected login-shell init (`EnsureManagedBlockVia`) so the env.d files actually get sourced at login.
 
 ## Guest-home resolution (deploy-time `{{.Home}}`)
@@ -69,7 +71,7 @@ Home-bearing step fields — `ShellHookStep` env values + `path_append`,
 `ShellSnippetStep` snippet/destination, `FileStep.Dest` — are compiled with the
 deferred `{{.Home}}` token (`HomeToken`), NOT a baked compile-time home. Each
 target resolves the token at emit via `InstallPlan.ResolveHome(home)`:
-`img.Home` for OCI/pod-overlay, the host home for `LocalDeployTarget`, and the
+`img.Home` for OCI/pod-overlay, the host home for the external `local:` deploy, and the
 **GUEST** home (`t.guestHome`) for `VmDeployTarget`. This is why a `target: vm`
 deploy writes `/home/<guest-user>/.config/opencharly/env.d/<layer>.env` whose
 contents point at `/home/<guest-user>/…` rather than the host operator's home.
@@ -80,9 +82,10 @@ runtime on the guest as the deploy user, already correct. See
 ## env.d-sourcing managed block (guest login shell)
 
 `VmDeployTarget` calls `EnsureManagedBlockVia(ctx, t.Exec, shell, t.guestHome,
-opts)` after the plan loop — the SAME executor-based writer `LocalDeployTarget`
-uses (`shell_profile.go`; the os-based `EnsureManagedBlock` is a thin wrapper
-over it). Without this block the per-layer env.d files exist but are never
+opts)` after the plan loop — the executor-based writer in `shell_profile.go`
+(the os-based `EnsureManagedBlock` is a thin wrapper over it; the external
+`local:` plugin renders its equivalent block out-of-process via
+`charly/plugin/kit/profile.go`). Without this block the per-layer env.d files exist but are never
 sourced, so PATH never picks up `~/.npm-global/bin` etc. The shell is detected
 from the GUEST `/etc/passwd` via `detectGuestShell` (getent), because the
 guest's interactive default may differ from the operator's (CachyOS ships fish)
@@ -111,7 +114,7 @@ This is what makes the full charly-cachyos stack — including the npm-builder A
 
 When a layer declares `reboot: true`, `BuildDeployPlan` appends a trailing
 `RebootStep`. `VmDeployTarget.execReboot` is the sole executor that acts on it
-(OCI/pod/k8s skip; `LocalDeployTarget` skips + warns — it never reboots the
+(OCI/pod/k8s skip; the external `local:` deploy skips + warns — it never reboots the
 operator host). It records the guest's `/proc/sys/kernel/random/boot_id`, fires
 `(sleep 1; systemctl reboot) &` so the ssh session closes cleanly, then polls
 until SSH answers AND the boot_id has changed — deterministic, not a fixed sleep,
@@ -217,6 +220,6 @@ When the VM's network uses libvirt user-mode + `<backend type='passt'/>` + `<por
 - `/charly-internals:libvirt-renderer` — renders domain XML; portForward + passt backend
 - `/charly-internals:cloud-init-renderer` — `EnsureCharlyInGuest` lives there
 - `/charly-core:deploy` — `charly bundle add vm:<name>` command + charly.yml schema
-- `/charly-local:local-deploy` — parallel target (LocalDeployTarget); ReverseOps model also used on VM target
+- `/charly-local:local-deploy` — parallel target (the external `local:` deploy); ReverseOps model also used on VM target
 - `/charly-vm:vm` — VM lifecycle; creates the target Emit runs against
 - `/charly-vm:arch` — canonical worked example — VmDeployState persistence; ssh_key idempotency live-test
