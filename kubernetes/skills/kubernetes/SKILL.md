@@ -175,8 +175,8 @@ charly bundle sync openclaw                   # kubectl apply -k ...
 
 - `charly/k8s_config.go` — `K8sDeployConfig` (the deploy's `kubernetes:` deploy-knobs block: namespace / workload override / patches / raw)
 - `charly/k8s_spec.go` — `K8sSpec` (the `kind: k8s` cluster template; absorbed the former `ClusterProfile` / `clusters/*.yaml`)
-- `charly/k8s_target.go` — `K8sDeployTarget` (fourth DeployTarget alongside OCI / container / host)
-- `charly/k8s_generate.go` — `GenerateK8sKustomize` + workload-kind heuristic + Ingress/PVC emission
+- `charly/k8s_deploy_preresolve.go` — the HOST-side `deploy:k8s` preresolver. `target: k8s` is an EXTERNAL deploy substrate (F1): it resolves out-of-process to candy/plugin-kube's `deploy:k8s` provider (beside its `kube:` verb), NOT a compiled-in DeployTarget. The preresolver resolves the image Capabilities + the `kind: k8s` cluster template, runs `GenerateK8sKustomize`, and ships the egress-validated overlay path in `DeployVenue.Substrate`; the plugin runs `kubectl --context <ctx> apply -k`. The user-facing surface (schema, cluster templates, Kustomize output) is unchanged. See `/charly-internals:install-plan` + `/charly-internals:plugin`.
+- `charly/k8s_generate.go` — `GenerateK8sKustomize` + workload-kind heuristic + Ingress/PVC emission (stays in core; consumed by the preresolver AND `charly bundle from-box --target k8s`)
 - `charly/bundle_from_box_cmd.go` — `BundleFromBoxCmd` (`charly bundle from-box`, K8s among its targets)
 - `charly/capabilities.go` — `Capabilities` (alias of `BoxMetadata`) + `CapabilityLabelMap` + completeness check
 

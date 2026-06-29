@@ -77,9 +77,9 @@ The inheritance rule lives here: `distro:`/`build:` are VALUES → inherited acr
 
 `Capabilities = BoxMetadata` (type alias in `charly/capabilities.go`). `CapabilityLabelMap` lists every field with its OCI label home; `TestCapabilityLabelCompleteness` fails the build if an `BoxMetadata` field lacks a mapping. This invariant keeps `charly bundle from-box` reliable: every field deploy code might consult is readable from a pushed image's labels alone, independent of `charly.yml`.
 
-### Kubernetes target (fifth DeployTarget)
+### Kubernetes substrate (EXTERNAL — `deploy:k8s`, candy/plugin-kube)
 
-`K8sDeployTarget` (`charly/k8s_target.go`) sits alongside `OCITarget`, `PodDeployTarget`, `LocalDeployTarget`, `VmDeployTarget`. Unlike local/VM targets, K8s doesn't consume install plans — it emits Kustomize manifests directly from `(Capabilities, K8sGenerateOpts, ClusterProfile)` via `GenerateK8sKustomize` (`charly/k8s_generate.go`). The workload-kind heuristic (`selectWorkloadKind`) translates the generic `kind:` enum to Deployment/StatefulSet/DaemonSet/Job/CronJob/Pod based on intent + storage presence.
+`target: k8s` is an EXTERNAL deploy substrate (F1): there is no in-proc k8s DeployTarget — it resolves to `externalDeployTarget` over the reverse channel, served out-of-process by candy/plugin-kube's `deploy:k8s` provider (beside its `kube:` verb). The Kustomize GENERATOR stays in core: `GenerateK8sKustomize` (`charly/k8s_generate.go`) emits manifests from `(Capabilities, BundleNode, K8sSpec)` (the workload-kind heuristic `selectWorkloadKind` maps the generic `kind:` enum to Deployment/StatefulSet/DaemonSet/Job/CronJob/Pod), but it consumes the package-main `Capabilities` type + the CUE egress gate the plugin cannot reach AND has a second in-core consumer (`charly bundle from-box --target k8s`). So the host-side `deploy:k8s` preresolver (`charly/k8s_deploy_preresolve.go`) resolves the image Capabilities + the kind:k8s cluster template, RUNS `GenerateK8sKustomize`, and ships the egress-validated overlay path in `DeployVenue.Substrate`; the plugin runs `kubectl --context <ctx> apply -k`. See `/charly-internals:install-plan` + `/charly-kubernetes:kubernetes`.
 
 ### VM target (fourth DeployTarget)
 
@@ -112,7 +112,7 @@ Deploy-mode commands (`charly config`, `charly start`, `charly stop`, `charly up
 
 ### InstallPlan IR — the shared intermediate representation
 
-The DEPLOY paths (pod/local/vm/k8s + external) route through a shared IR; build-mode Containerfile emission is a SEPARATE generator (`writeCandySteps` → `emitTasks`, reading each layer's ops directly), NOT the IR. Flow:
+The DEPLOY paths (pod/local/vm + external) route through a shared IR; build-mode Containerfile emission is a SEPARATE generator (`writeCandySteps` → `emitTasks`, reading each layer's ops directly), NOT the IR. The k8s substrate is EXTERNAL and does NOT consume the IR — it generates a Kustomize tree host-side (see "Kubernetes substrate" above). Flow:
 
 ```
 Layer + ResolvedBox + HostContext
@@ -123,8 +123,9 @@ Layer + ResolvedBox + HostContext
        ├── PodDeployTarget (deploy_target_pod.go)   → overlay + quadlet
        ├── LocalDeployTarget (deploy_target_local.go) → local shell execution
        ├── VmDeployTarget (deploy_target_vm.go)     → SSH-wrapped shell in the guest
-       ├── K8sDeployTarget (k8s_target.go)          → Kustomize base/overlays tree
        └── externalDeployTarget (deploy_target_external.go) → out-of-process plugin over the OpExecute reverse channel
+                                                              (incl. deploy:k8s — host preresolver generates the
+                                                              Kustomize tree, plugin runs kubectl apply -k)
 ```
 
 `OCITarget` is constructed only by `PodDeployTarget`; `charly box build`/`generate` emit via the `writeCandySteps` → `emitTasks` generator (`generate.go` + `tasks.go`), sharing the package-cascade / shell-snippet / localpkg compiler helpers with the IR. Full reference lives in **`/charly-internals:install-plan`** — go there before touching any of those files. Supporting Go files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref, hostdistro, migrate_services_tool) are covered in **`/charly-internals:local-infra`**.

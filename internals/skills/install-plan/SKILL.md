@@ -4,14 +4,17 @@ description: |
   The InstallPlan IR — the shared intermediate representation consumed by the DEPLOY
   targets: pod deploys (PodDeployTarget, incl. add_candy: overlay-Containerfile
   synthesis via OCITarget), local deploys (LocalDeployTarget), VM deploys
-  (VmDeployTarget over SSH), Kubernetes deploys (K8sDeployTarget), and external
-  out-of-process deploys (externalDeployTarget over the executor reverse channel).
-  Build-mode Containerfile emission is the SEPARATE writeCandySteps → emitTasks path.
+  (VmDeployTarget over SSH), and external out-of-process deploys (externalDeployTarget
+  over the executor reverse channel). The k8s substrate is EXTERNAL (deploy:k8s, served
+  out-of-process by candy/plugin-kube): it does NOT consume the IR — the host preresolver
+  GENERATES a Kustomize tree (GenerateK8sKustomize, k8s_generate.go) and the plugin runs
+  `kubectl apply -k`. Build-mode Containerfile emission is the SEPARATE writeCandySteps →
+  emitTasks path.
   MUST be invoked before reading or modifying any of:
   charly/install_plan.go, charly/install_build.go, charly/build_target_oci.go,
   charly/deploy_target_local.go, charly/deploy_target_pod.go, charly/deploy_target_vm.go,
-  charly/deploy_target_external.go, charly/k8s_target.go, charly/spec/deploy_wire.go,
-  or when adding a new step kind / deploy target / reverse-op kind.
+  charly/deploy_target_external.go, charly/k8s_generate.go, charly/k8s_deploy_preresolve.go,
+  charly/spec/deploy_wire.go, or when adding a new step kind / deploy target / reverse-op kind.
 ---
 
 # InstallPlan IR — shared IR for build + deploy
@@ -46,7 +49,8 @@ This skill is the single source of truth for the IR shape. Add a new step kind b
 | `charly/plugin_step_external.go` | `externalPluginStepProvider` — the `StepProvider` for `StepKindExternalPlugin` (a `run: plugin: <verb>` step served by an OUT-OF-PROCESS plugin): `EmitOCI`→`Invoke(OpEmit)` fragment, `EmitLocal`/`EmitVM`→`Invoke(OpExecute)` over the executor reverse channel; the `executorInvoker` discriminator + `executeExternalPluginStep` (records the reply's dynamic `ReverseOp`s to the `CandyRecord`) |
 | `charly/spec/deploy_wire.go` | The deploy IR wire types shared with the plugin SDK: `Scope`, `ReverseOp` (+ `ReverseOpPluginScript`), `InstallPlanView`, `DeployVenue`, `DeployReply`, plus the build-time `BuildEnv` / `EmitReply` (verb/step `OpEmit`) / `BuilderResolveReply` (builder `OpResolve`: `{Stage, CopyArtifacts}`) |
 | `charly/plugin_prescan.go` | The byte-gated, additive parse pre-scan that recognizes an EXTERNAL deploy SUBSTRATE word at config-parse time, before the provider connects |
-| `charly/k8s_target.go` | `K8sDeployTarget` — emits Kustomize base/overlays tree |
+| `charly/k8s_generate.go` | `GenerateK8sKustomize` — emits the Kustomize base/overlays tree from `(Capabilities, BundleNode, K8sSpec)`. Stays in core (egress-gated; second consumer `charly bundle from-box --target k8s`); called by the k8s deploy preresolver + from-box, NOT a `DeployTarget` |
+| `charly/k8s_deploy_preresolve.go` | the HOST-side `deploy:k8s` preresolver (F1) — resolves the image Capabilities + the kind:k8s cluster template, runs `GenerateK8sKustomize`, and ships the overlay path in `DeployVenue.Substrate` (`spec.K8sDeployVenue`) for the out-of-process candy/plugin-kube `deploy:k8s` provider |
 | `charly/deploy_executor*.go` | `DeployExecutor` interface + `ShellExecutor` + `SSHExecutor` — shell + file-copy abstraction shared by Local/VM targets |
 | `charly/install_plan_test.go` | IR unit tests (scope/venue/gate/reverse derivations) |
 | `charly/install_build_test.go` | Compiler integration tests (ripgrep, dev-tools, pixi layer) |
@@ -206,7 +210,7 @@ Step emission order (mirrors today's `writeCandySteps`):
 
 ```go
 type DeployTarget interface {
-    Name() string                 // "oci" | "pod" | "host" | "vm:<name>" | "k8s"
+    Name() string                 // "oci" | "pod" | "host" | "vm:<name>"
     Emit(plans []*InstallPlan, opts EmitOpts) error
 }
 ```
@@ -235,10 +239,8 @@ Same IR walking as LocalDeployTarget, but shell bodies run via `ssh guest 'sudo 
 
 Used by: `charly bundle add vm:<name> <ref>` / `charly bundle del vm:<name>`. See `/charly-internals:vm-deploy-target` for the full flow, `VmDeployState` persistence, and SSH-key idempotency.
 
-### `K8sDeployTarget` (`charly/k8s_target.go`)
-Emits a Kustomize `base/` + `overlays/` tree under `.opencharly/k8s/<name>/`. Does NOT execute anything; the generated manifests are applied via `kubectl apply -k` out-of-band. Cluster-specific choices (storage class, ingress class, cert issuer, secret backend) come from a **cluster profile** (`~/.config/charly/clusters/<name>.yaml`), NOT the InstallPlan — the plan describes what the workload needs; the profile describes how K8s provides it.
-
-See `/charly-kubernetes:kubernetes` for the user-facing surface and profile layout.
+### k8s is EXTERNAL (`deploy:k8s`, candy/plugin-kube) — NOT an IR-consuming DeployTarget
+There is no in-proc k8s DeployTarget. `target: k8s` resolves to `externalDeployTarget` (below), served out-of-process by candy/plugin-kube's `deploy:k8s` provider (F1, beside its `kube:` verb). The Kustomize generation cannot leave core — `GenerateK8sKustomize` (`charly/k8s_generate.go`) consumes the package-main `Capabilities`/`BoxMetadata` type + the CUE egress gate (`#K8sObject` / `#Kustomization`) the plugin cannot reach, AND it has a second in-core consumer (`charly bundle from-box --target k8s`). So the host-side `deploy:k8s` preresolver (`charly/k8s_deploy_preresolve.go`) resolves the image Capabilities + the kind:k8s cluster template, RUNS `GenerateK8sKustomize` (the egress-validated `base/` + `overlays/` tree under `.opencharly/k8s/<name>/`), and ships the overlay path in `DeployVenue.Substrate` (`spec.K8sDeployVenue`). The plugin then runs `kubectl --context <ctx> apply -k` (the LIVE cluster I/O it owns) and returns the `kubectl delete -k` + tree-removal teardown op the host records. k8s does NOT consume the InstallPlan IR (a k8s deploy compiles no primary image plan). Cluster-specific choices come from a `kind: k8s` cluster template (the `k8s:` entity), not the InstallPlan. See `/charly-kubernetes:kubernetes` + `/charly-internals:plugin`.
 
 ### `externalDeployTarget` (`charly/deploy_target_external.go`)
 The `UnifiedDeployTarget` adapter for an OUT-OF-PROCESS deploy provider (a `grpcProvider` whose class is `deploy`). The full lifecycle rides over the host-served executor reverse channel — placement-invisible above the registry, so an external deploy substrate is a free authoring choice:
