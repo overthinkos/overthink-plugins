@@ -62,7 +62,7 @@ See "Authoring an external COMMAND plugin" below.
 
 - **The perf invariant that makes placement free.** A builtin dispatches through its typed in-proc fast path
   (`CheckVerbProvider.RunVerb` / `KindProvider.DecodeNode` / `DeployTargetProvider.ResolveTarget` /
-  `StepProvider.Emit*` / `BuilderProvider.Reverse`) and NEVER marshals the Op into the serializable `Invoke`
+  `StepProvider.Emit*`) and NEVER marshals the Op into the serializable `Invoke`
   envelope; the JSON envelope (`marshalJSON`) is paid ONLY out-of-process. Choosing builtin therefore costs no
   envelope tax — placement is a free build/deploy decision, not a performance trade-off. Locked by
   `TestPerfGate_BuiltinVerbsSkipEnvelope` + `BenchmarkVerbTypedDispatchFork` (0-alloc) vs
