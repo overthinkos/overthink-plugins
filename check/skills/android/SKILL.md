@@ -1,7 +1,7 @@
 ---
 name: android
 description: |
-  MUST be invoked before any work involving: the `kind: android` schema kind, a `target: android` deploy, the `apk:` layer package format (installing Android apps declaratively), AndroidDeployTarget, an in-pod emulator OR a remote/physical adb-endpoint device, or nested `pod → android` deployment. The first-class Android device + app surface that sits above the `adb:`/`appium:` check verbs.
+  MUST be invoked before any work involving: the `kind: android` schema kind, a `target: android` deploy (the external `deploy:android` substrate), the `apk:` layer package format (installing Android apps declaratively), the android deploy preresolver, an in-pod emulator OR a remote/physical adb-endpoint device, or nested `pod → android` deployment. The first-class Android device + app surface that sits above the `adb:`/`appium:` check verbs.
 ---
 
 # kind: android + the `apk` package format
@@ -109,10 +109,11 @@ android-stack:
 
 `charly bundle add android-stack.device` resolves the device, gates on
 `sys.boot_completed`, and installs the `add_candy:` candies' `apk:` packages via
-`AndroidDeployTarget`. Apps ride in on `add_candy:` (the same overlay mechanism
+the **external `deploy:android` substrate** (F1 — served out-of-process by
+candy/plugin-adb). Apps ride in on `add_candy:` (the same overlay mechanism
 local/vm targets use) — there is no separate apk-list field. `charly bundle del`
-best-effort `pm uninstall`s each `package:` id (the device/pod lifecycle is
-owned by the pod deploy).
+best-effort `pm uninstall`s each `package:` id (replayed from the deploy's
+recorded reverse ops; the device/pod lifecycle is owned by the pod deploy).
 
 A top-level (non-nested) `target: android` deploy works too — for an `image:`
 device it resolves the running container by image name; for an `adb:` device it
@@ -130,20 +131,28 @@ so `charly bundle add --node-only` brings the pod up first and the children depl
 afterwards by dotted path; `charly check run <bed>` automates this (deploy pod →
 config → start → deploy nested children → check-live).
 
-## One installer (R3)
+## One installer + one plugin (R3 / F1)
 
-`charly/android_install.go` holds the SINGLE install path. `AndroidDevice`
-abstracts where work runs:
+candy/plugin-adb owns ALL Android device interaction — the `adb:` check verb,
+the `deploy:android` substrate, AND the goadb-backed `charly status` probe — so
+the goadb dependency + the single apk install path (`install.go`:
+`installByPackage` apkeep+adb / `installFromHostApk` goadb push / `uninstall`)
+live in ONE plugin, never duplicated across verb and deploy.
 
-- `InstallByPackage` — apkeep download + adb install. In-pod (`engine exec`,
-  apkeep baked in the image) for an image device; host (`apkeep` + `adb -H -P`)
-  for an endpoint device. google-play creds come from the container env in-pod,
-  or the credential store (via `google_account:`) on the host.
-- `InstallFromHostApk` — committed APK pushed via goadb, venue-agnostic.
+The deploy is **split host ⇄ plugin** (the F1 substrate-kind-plugin seam):
 
-Both the `adb: install-app` and `adb: install` verbs are thin wrappers over
-this — so the apk format, the check verbs, and the deploy target can never drift
-on single/split/`.xapk` handling.
+- **Host** (`charly/android_deploy_preresolve.go`, the registered android deploy
+  preresolver) resolves the device endpoint (engine inspect / `${HOST_PORT:N}` /
+  google-play creds from the credential store) and collects the apk install specs
+  from the deploy's compiled plans (committed-APK paths → absolute host paths),
+  shipping them in `DeployVenue.Substrate` (a `spec.AndroidDeployVenue`).
+- **Plugin** (`candy/plugin-adb/deploy.go`, the `deploy:android` provider) gates
+  on `sys.boot_completed`, installs each app with retry (reusing the SAME
+  `install`/`install-app` method handlers the `adb:` verb dispatches), and returns
+  the `pm uninstall` teardown ops the host records + replays at `charly bundle del`.
+
+So the apk format, the check verbs, and the deploy substrate can never drift on
+single/split/`.xapk` handling — they all flow through the one provider.
 
 ## R10 bed
 
@@ -155,16 +164,30 @@ results (`apk-fdroid-present`/`-launch`, `apk-net-apidemos-present`).
 
 ## Implementation map
 
+`target: android` is an EXTERNAL deploy substrate (F1): it resolves to
+`externalDeployTarget` over the E3b reverse channel, served by candy/plugin-adb.
+There is no in-proc android deploy target.
+
 - `charly/android_spec.go` — `AndroidSpec` / `AndroidAdbEndpoint` /
   `AndroidGoogleAccount` / `ApkPackageSpec`.
-- `charly/android_install.go` — `AndroidDevice` + the shared installer.
-- `charly/android_target.go` — `AndroidDeployTarget` (consumes the IR).
-- `charly/unified_targets_apk.go` — `AndroidUnifiedTarget.Add`/`.Del` (the android
-  deploy + teardown logic, reached via `ResolveTarget`).
-- `charly/android_deploy_cmd.go` — `findAndroidSpec` + the device-resolution helpers
-  (`resolveAndroidDevice`, `androidApkPackageIDs`).
+- `charly/android_deploy_cmd.go` — host-side device-endpoint resolution
+  (`findAndroidSpec`, `resolveAndroidDevice`, `adbAddrForContainer`, the
+  `${HOST_PORT:N}` helper) + the `AndroidDevice` handle. Shared by the deploy
+  preresolver AND the `charly status` AndroidCollector (no goadb in core).
+- `charly/android_deploy_preresolve.go` — the registered `deploy:android`
+  preresolver: resolves the device + collects the apk install specs
+  (`collectAndroidInstalls`, `resolveApkPath`) into a `spec.AndroidDeployVenue`.
+- `charly/deploy_preresolve.go` — the GENERAL per-substrate preresolver hook
+  registry (any external substrate registers one; only the body is substrate-specific).
+- `charly/provider_deploy.go` — `externalizedDeploySubstrates` (the F1 source of
+  truth) + the relaxed `checkDeployProviderBijection` (in-proc XOR externalized).
+- `charly/plugin_prescan.go` — `isExternalDeploySubstrate` (a substrate kind is
+  external iff in `externalizedDeploySubstrates`).
+- `charly/spec/deploy_wire.go` — `DeployVenue.Substrate` + `AndroidDeployVenue`.
+- `candy/plugin-adb/deploy.go` — the `deploy:android` provider (boot gate + install
+  loop with retry + uninstall reverse ops); `install.go` — the shared installer.
 - `charly/install_plan.go` — `ApkInstallStep`; `charly/install_build.go` —
-  `compileApkStep`.
+  `compileApkStep` (the preresolver reads this step host-side; no DeployTarget executes it).
 - `charly/unified.go` — loader wiring (mirrors every `k8s` site).
 - `charly/deploy.go` `BundleNode.Android`; `charly/deploy_add_cmd.go` dispatch +
   `--node-only`; `charly/deploy_chain.go` / `charly/deploy_tree.go` passthrough.
@@ -180,7 +203,7 @@ results (`apk-fdroid-present`/`-launch`, `apk-net-apidemos-present`).
 
 ## When to Use This Skill
 
-**MUST be invoked** for any task involving `kind: android`, `target: android`,
-the `apk:` layer package format, `AndroidDeployTarget`, an adb-endpoint device,
-or nested `pod → android` deployment. Invoke BEFORE reading the android_*.go
+**MUST be invoked** for any task involving `kind: android`, `target: android`
+(the external `deploy:android` substrate), the `apk:` layer package format, an
+adb-endpoint device, or nested `pod → android` deployment. Invoke BEFORE reading the android_*.go
 source or editing a device's `charly.yml` / a layer's `apk:` list.

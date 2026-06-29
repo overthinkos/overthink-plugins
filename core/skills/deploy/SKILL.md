@@ -35,8 +35,10 @@ A deploy's install timeline can include a `run: plugin: <verb>` step. When the v
 
 **An `android:` deploy** installs a deploy's `add_candy:` candies' `apk:` packages
 onto an `android` device entity (an in-pod emulator or a remote/physical adb
-endpoint) via `AndroidDeployTarget` — the Android analogue of a `k8s:` deploy
-emitting workloads onto a cluster. The substrate node is `android: {from: <device>}`; apps
+endpoint) via the EXTERNAL `deploy:android` substrate (F1 — served out-of-process
+by candy/plugin-adb; the host preresolves the device endpoint + apk specs, the
+plugin installs) — the Android analogue of a `k8s:` deploy emitting workloads onto
+a cluster. The substrate node is `android: {from: <device>}`; apps
 ride in on the `add_candy:` child node (no apk-list field). A `pod → android` tree
 (the device placed under its emulator-pod node) mirrors `vm → k8s`; a pod's android
 children deploy AFTER `charly start` (use `--node-only` on the pod's deploy-add, then
