@@ -22,7 +22,7 @@ description: |
 
 1. **Execution verbs** — `charly bundle add <name>` / `charly bundle del <name>`. Apply or reverse a deployment. The target is dispatched by which substrate node the deploy carries:
    - `local: {from: <template>}` → the external `deploy:local` plugin (`candy/plugin-deploy-local`) applies to the local filesystem over the executor reverse channel (or, placed under another resource node via tree position, via NestedExecutor into the enclosing deployment). See `/charly-local:local-deploy`.
-   - `vm: {from: <entity>}` → `VmDeployTarget` inside a running VM via SSH. See "VM target" section below and `/charly-internals:vm-deploy-target`.
+   - `vm: {from: <entity>}` → the external `deploy:vm` plugin (`candy/plugin-deploy-vm`) applies INSIDE a running VM over SSH via the reverse channel; the host-side `vmSubstrateLifecycle` hook boots the venue. See "VM target" section below and `/charly-internals:vm-deploy-target`.
    - `pod: {image: <image>}` → `PodDeployTarget`: overlay Containerfile + quadlet/podman.
    - `k8s: {from: <name>}` → Kustomize base/overlays tree. See `/charly-kubernetes:kubernetes`.
 2. **Config-file management** — `charly bundle show/export/import/reset/path/status`. Read and mutate `~/.config/charly/charly.yml` itself.
@@ -76,7 +76,7 @@ For service lifecycle commands (start/stop/status/logs/update/remove), see `/cha
 Applies a deployment. The substrate node selects the target:
 
 - **`local: {from: <template>}`** — apply layers to the local filesystem via the external `deploy:local` plugin (`candy/plugin-deploy-local`) over the executor reverse channel. With `host: local` (default) the apply runs through a `ShellExecutor` directly; with `host: <user@machine>` it runs over an `SSHExecutor` (picked by `rootExecutorForDeployNode`). See `/charly-local:local-deploy`.
-- **`vm: {from: <entity>}`** — apply layers inside a running `vm` entity via SSH (`VmDeployTarget`). `<vm-name>` must match a `vm` entity; the VM must already be created (`charly vm create <vm-name>`). See "VM target" section below.
+- **`vm: {from: <entity>}`** — apply layers inside a running `vm` entity via SSH (the external `deploy:vm` plugin, `candy/plugin-deploy-vm`, over the reverse channel). `<vm-name>` must match a `vm` entity; the VM must already be created (`charly vm create <vm-name>`), or the `vmSubstrateLifecycle` hook auto-boots it. See "VM target" section below.
 - **`k8s: {from: <name>}`** — emit a Kustomize base/overlays tree. See `/charly-kubernetes:kubernetes`.
 - **`pod: {image: <image>}`** (pod, the default target) — container deployment. Multiple pod deploys coexist (`my-dev`, `postgres-staging`, etc.); each gets its own quadlet, container name, and charly.yml entry.
 
@@ -164,11 +164,11 @@ arch:                                          # the deploy name; addressable as
 
 ### Marking a deploy VM-targeted: the `vm:` substrate node
 
-A deploy is VM-targeted when its first child key is the `vm:` substrate node carrying `from: <entity>` — there is no `target:` field. CLI dispatch additionally accepts a `vm:<vm-name>` prefix on the deploy-name argument (`charly bundle add vm:arch`), which `ResolveTarget` reads to route through `VmUnifiedTarget.Add`. The prefix is an addressing convenience; the `vm:` substrate node is the source of truth. Naming a `vm:` deploy whose underlying VM doesn't exist errors at `charly bundle add` time.
+A deploy is VM-targeted when its first child key is the `vm:` substrate node carrying `from: <entity>` — there is no `target:` field. CLI dispatch additionally accepts a `vm:<vm-name>` prefix on the deploy-name argument (`charly bundle add vm:arch`), which `ResolveTarget` reads to route through `externalDeployTarget` (the adapter for the external `vm` substrate). The prefix is an addressing convenience; the `vm:` substrate node is the source of truth. Naming a `vm:` deploy whose `vm` entity isn't declared in `charly.yml` errors at `charly bundle add` time; a declared-but-unbooted VM is auto-booted by the lifecycle hook's `PrepareVenue`.
 
 ### `add_candy:` overlay semantics for VM targets
 
-When `charly bundle add vm:<name> <ref>` runs with `--add-candy`, the extra layers are applied **inside the guest** alongside the primary ref. The compiler merges `<ref>` + `add_candy:` into a single topo-sorted `InstallPlan`; `VmDeployTarget.Emit` walks it over SSH. The guest-side ledger records both the base and overlay layers so `charly bundle del vm:<name>` reverses the full set.
+When `charly bundle add vm:<name> <ref>` runs with `--add-candy`, the extra layers are applied **inside the guest** alongside the primary ref. The compiler merges `<ref>` + `add_candy:` into a single topo-sorted `InstallPlan`; the external `deploy:vm` plugin's `kit.WalkPlans` walks it inside the guest over SSH. The host-side ledger (keyed by `computeDeployID`) records both the base and overlay layers' teardown ops so `charly bundle del vm:<name>` reverses the full set.
 
 This is the same merge semantics as a `local:` deploy — just with SSH-wrapped execution. See `/charly-internals:install-plan` for the compiler and `/charly-internals:vm-deploy-target` for the execution model.
 
@@ -1099,7 +1099,7 @@ webapp:                            # an operator deploy + a companion member
 
 **Deploy surface:**
 - `/charly-local:local-deploy` — Local-target execution model: the external `deploy:local` plugin, ledger, gates, 15 ReverseOp kinds, sudo batching
-- `/charly-internals:install-plan` — The InstallPlan IR shared by the deploy targets: pod deploys (PodDeployTarget, incl. `add_candy:` overlay synthesis via OCITarget), VM deploys (VmDeployTarget), and external out-of-process deploys (local/k8s/android via plugins over the executor reverse channel; `charly box build` itself emits via the separate writeCandySteps → emitTasks generator, not the IR)
+- `/charly-internals:install-plan` — The InstallPlan IR shared by the deploy targets: pod deploys (PodDeployTarget, incl. `add_candy:` overlay synthesis via OCITarget) and external out-of-process deploys (local/vm/android/k8s via plugins over the executor reverse channel — local/vm consume the IR via `kit.WalkPlans`, vm's walk runs inside the guest; `charly box build` itself emits via the separate writeCandySteps → emitTasks generator, not the IR)
 - `/charly-internals:local-infra` — Supporting Go files for local deploys: hostdistro, ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref
 
 **Deploy-adjacent commands:**

@@ -243,8 +243,8 @@ reachable.
 ### Cloud-image VM packages
 
 When a cloud-image VM uses `charly_install.strategy: auto` (the modern
-default), VmDeployTarget scps the **host** `charly` binary into the guest
-post-boot. The core charly binary is cgo-free for audio — the SPICE audio
+default), the vm deploy's lifecycle hook (`PrepareVenue` → `EnsureCharlyInGuest`)
+scps the **host** `charly` binary into the guest post-boot. The core charly binary is cgo-free for audio — the SPICE audio
 channels (the sole opus/portaudio cgo consumers) were dep-shed out of core
 into the out-of-tree `candy/plugin-spice`, gated behind `-tags spice_audio`.
 `ldd $(command -v charly)` shows no libportaudio/libopus, so the scp'd binary

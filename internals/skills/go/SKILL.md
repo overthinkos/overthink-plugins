@@ -81,11 +81,13 @@ The inheritance rule lives here: `distro:`/`build:` are VALUES → inherited acr
 
 `target: k8s` is an EXTERNAL deploy substrate (F1): there is no in-proc k8s DeployTarget — it resolves to `externalDeployTarget` over the reverse channel, served out-of-process by candy/plugin-kube's `deploy:k8s` provider (beside its `kube:` verb). The Kustomize GENERATOR stays in core: `GenerateK8sKustomize` (`charly/k8s_generate.go`) emits manifests from `(Capabilities, BundleNode, K8sSpec)` (the workload-kind heuristic `selectWorkloadKind` maps the generic `kind:` enum to Deployment/StatefulSet/DaemonSet/Job/CronJob/Pod), but it consumes the package-main `Capabilities` type + the CUE egress gate the plugin cannot reach AND has a second in-core consumer (`charly bundle from-box --target k8s`). So the host-side `deploy:k8s` preresolver (`charly/k8s_deploy_preresolve.go`) resolves the image Capabilities + the kind:k8s cluster template, RUNS `GenerateK8sKustomize`, and ships the egress-validated overlay path in `DeployVenue.Substrate`; the plugin runs `kubectl --context <ctx> apply -k`. See `/charly-internals:install-plan` + `/charly-kubernetes:kubernetes`.
 
-### VM target (fourth DeployTarget)
+### VM target (external substrate)
 
-`VmDeployTarget` (`charly/deploy_target_vm.go`) executes InstallPlans inside a running VM over SSH. Same IR as the external `local:` deploy, but bash bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` (`charly/deploy_executor_ssh.go`). Ledger writes land on the **guest** filesystem. The `DeployExecutor` interface (`charly/deploy_executor.go`) decouples "how shell commands run" from the target walking logic — `ShellExecutor` + `SSHExecutor` are the two implementations.
+`target: vm` is an EXTERNAL deploy substrate, exactly like `local`/`android`/`k8s`: there is no in-proc VM DeployTarget. It resolves to `externalDeployTarget` over the reverse channel, served out-of-process by `candy/plugin-deploy-vm`'s `deploy:vm` provider. UNLIKE k8s, the vm substrate DOES consume the InstallPlan IR — the plugin walks the plan via the SAME shared `charly/plugin/kit.WalkPlans` the local deploy uses, but the executor the reverse channel serves is the **guest `SSHExecutor`** (`charly/deploy_executor_ssh.go`), so the same walk runs INSIDE the guest (bash bodies via `ssh guest 'sudo bash -s'`). The `DeployExecutor` interface (`charly/deploy_executor.go`) decouples "how shell commands run" from the walk — `ShellExecutor` + `SSHExecutor` are the two implementations.
 
-`charly bundle add vm:<name>` dispatches through `deploy_add_cmd.go::dispatchNode` → `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del` (no per-kind dispatch function); `deploy_add_cmd_vm.go` carries the VM-only helpers (`deployNestedPodsInGuest`, `buildVmReverseRunner`, `vmNameFromDeployName`). Full architecture + preflight flow lives in `/charly-internals:vm-deploy-target`.
+The host-side VM venue lifecycle (boot the domain, build the guest SSH executor, nested pod-in-guest, teardown, the `charly vm` Start/Stop/Status/Logs/Shell/Rebuild) lives in the registered `vmSubstrateLifecycle` hook (`charly/vm_deploy_lifecycle.go`), implementing the `substrateLifecycle` interface (`charly/deploy_substrate_lifecycle.go`) — the one external substrate that owns a real venue lifecycle.
+
+`charly bundle add vm:<name>` dispatches through `bundle_add_cmd.go::dispatchNode` → `ResolveTarget` → `externalDeployTarget` (no per-kind dispatch function); `bundle_add_cmd_vm.go` carries the host-side VM-only helpers that REMAIN (`deployNestedPodsInGuest`, `vmNameFromDeployName`, `sshReverseRunner`, `saveVmDeployState`, `removeVmDeployEntry`). Full architecture + preflight flow lives in `/charly-internals:vm-deploy-target`.
 
 ### YAML surface ↔ Go identifier convention
 
@@ -118,13 +120,15 @@ The DEPLOY paths (pod/vm + external [local/k8s/android]) route through a shared 
 Layer + ResolvedBox + HostContext
     → BuildDeployPlan (install_build.go) [pure; deploy-path only, NOT charly box build]
     → InstallPlan (install_plan.go)
-    → DeployTarget.Emit / lifecycle
+    → DeployTarget.Emit (OCITarget/PodDeployTarget) / UnifiedDeployTarget lifecycle
        ├── OCITarget (build_target_oci.go)          → Containerfile text (pod-overlay add_candy: synthesis)
        ├── PodDeployTarget (deploy_target_pod.go)   → overlay + quadlet
-       ├── VmDeployTarget (deploy_target_vm.go)     → SSH-wrapped shell in the guest
        └── externalDeployTarget (deploy_target_external.go) → out-of-process plugin over the OpExecute reverse channel
                                                               (deploy:local — candy/plugin-deploy-local walks the IR
                                                               via kit.WalkPlans, host-engine steps via RunHostStep;
+                                                              deploy:vm — candy/plugin-deploy-vm runs the SAME walk
+                                                              INSIDE the guest over the guest SSHExecutor, with the
+                                                              host-side vmSubstrateLifecycle hook owning the venue;
                                                               deploy:k8s — host preresolver generates the Kustomize
                                                               tree, plugin runs kubectl apply -k; deploy:android)
 ```
@@ -148,8 +152,10 @@ The VM path spans the following module topology:
 | `charly/ovmf_paths.go` | `ResolveOvmfPaths` (per-distro OVMF_CODE/VARS paths) + `EnsurePerVmNvram` + `ResolveOvmfForSpec` (bios-sentinel returning empty strings) |
 | `charly/schema/vm.cue` + `cue_kind_vm.go` | `#Vm` — the closed CUE schema validating VmSpec + the `#LibvirtDomain`/`#VmCloudInit` subtrees (the Go VM/libvirt validators were deleted; CUE owns it via the per-kind registry) |
 | `charly/deploy_executor*.go` | `DeployExecutor` interface + `ShellExecutor` + `SSHExecutor` with `WaitForSSH` + `WaitForCloudInit` |
-| `charly/deploy_target_vm.go` | `VmDeployTarget.Emit` |
-| `charly/deploy_add_cmd_vm.go` | VM-only deploy helpers (`deployNestedPodsInGuest`, `buildVmReverseRunner`, `vmNameFromDeployName`); `charly bundle add vm:<name>` itself dispatches through `dispatchNode` → `ResolveTarget` → `VmUnifiedTarget.Add` |
+| `charly/deploy_target_external.go` | `externalDeployTarget` — the adapter the external `vm` substrate (and local/android/k8s) routes through |
+| `charly/deploy_substrate_lifecycle.go` + `charly/vm_deploy_lifecycle.go` | the `substrateLifecycle` interface + `vmSubstrateLifecycle` host-side VM venue lifecycle hook (boot/executor/preflight/nested-pods/teardown + `charly vm` Start/Stop/Status/Logs/Shell/Rebuild) |
+| `candy/plugin-deploy-vm/` | the out-of-process `deploy:vm` plugin — `kit.WalkPlans` over the guest `SSHExecutor` |
+| `charly/bundle_add_cmd_vm.go` | host-side VM-only deploy helpers that REMAIN (`deployNestedPodsInGuest`, `vmNameFromDeployName`, `sshReverseRunner`, `saveVmDeployState`, `removeVmDeployEntry`); `charly bundle add vm:<name>` itself dispatches through `dispatchNode` → `ResolveTarget` → `externalDeployTarget` |
 | `charly/vm_create_spec.go` + `vm_build.go` | CLI command wiring for `charly vm build/create` reading `kind: vm` entities |
 | `charly/libvirt_helpers.go` + `libvirt_yaml_listen.go` | helpers shared by the libvirt YAML bridge + `qemu_render` argv emitter (`VmRuntimeParams`); structured `<listen>` support for `LibvirtGraphics` |
 
@@ -231,7 +237,7 @@ Provider/registry/SDK internals are owned by **`/charly-internals:plugin`**; the
 | File | Purpose |
 |------|---------|
 | `deploy_target_external.go` | `externalDeployTarget` — Add/Test/Update/Del for an OUT-OF-PROCESS deploy provider over the executor reverse channel (`OpExecute`); records teardown ops to the ledger keyed on `computeDeployID` |
-| `plugin_step_external.go` | `externalPluginStepProvider` — the `StepProvider` for `StepKindExternalPlugin` (a `run: plugin: <verb>` step served by an OUT-OF-PROCESS plugin). `EmitOCI`→`Invoke(OpEmit)` fragment (reusing `emitPluginFragment`, R3); `EmitLocal`/`EmitVM`→`executeExternalPluginStep`→`InvokeWithExecutor(OpExecute)` on the executor reverse channel, recording the reply's dynamic `ReverseOp`s to the `CandyRecord`. The `executorInvoker` interface (`InvokeWithExecutor`, satisfied SOLELY by `*grpcProvider`) is the discriminator. The IR kind `StepKindExternalPlugin` + `ExternalPluginStep` struct live in `install_plan.go`; `compileActOp` (`install_build.go`) routes an external (`executorInvoker`) plugin verb to it; `allStepKinds` + the bijection gate (`provider_step.go`) register it. Owned by `/charly-internals:install-plan`. |
+| `plugin_step_external.go` | `externalPluginStepProvider` — the `StepProvider` for `StepKindExternalPlugin` (a `run: plugin: <verb>` step served by an OUT-OF-PROCESS plugin). `EmitOCI`→`Invoke(OpEmit)` fragment (reusing `emitPluginFragment`, R3) is the only in-proc Emit. At DEPLOY time the step is executed via `executeExternalPluginStep`→`InvokeWithExecutor(OpExecute)` on the executor reverse channel — reached as a host-engine step over `RunHostStep` during the external local/vm deploy walk — recording the reply's dynamic `ReverseOp`s to the `CandyRecord`. The `executorInvoker` interface (`InvokeWithExecutor`, satisfied SOLELY by `*grpcProvider`) is the discriminator. The IR kind `StepKindExternalPlugin` + `ExternalPluginStep` struct live in `install_plan.go`; `compileActOp` (`install_build.go`) routes an external (`executorInvoker`) plugin verb to it; `allStepKinds` + the bijection gate (`provider_step.go`) register it. Owned by `/charly-internals:install-plan`. |
 | `plugin_prescan.go` | Byte-gated, additive parse pre-scan: `prescanPluginManifest` registers BOTH an external deploy SUBSTRATE word (`ClassDeployTarget`, consumed by `unified.go`'s loader path before the provider connects) AND an external COMMAND word (`ClassCommand`, registered via `registerDeclaredExternalCommand`, snapshot via `declaredExternalCommandWords`, consumed by `prescanProjectCommandWords` in `main.go` before `kong.Parse`) |
 | `plugin_command_prescan.go` | The EARLY (pre-`kong.Parse`) external-COMMAND-word prescan: `prescanProjectCommandWords` resolves the project dir pre-parse (`projectDirPreParse`: `CHARLY_PROJECT_DIR` → `scanDirFlag` over `os.Args` → cwd) and registers each declared command word so `charly <word>` PARSES; `connectCommandPlugin` is the LAZY connect (LoadConfig → `ScanAllCandyWithConfigOpts` → `loadProjectPlugins` scoped to the one word → `resolve(ClassCommand, word)`), paid only on an actual `charly <word>` invocation |
 | `provider_command_external.go` | OUT-OF-PROCESS command dispatch: `collectExternalCommandPlugins` builds a Kong grammar holder per prescanned word with the provider UNconnected (`prov` nil) so the CLI parses; `dispatchExternalCommand` lazy-connects on invocation (`connectCommandPlugin`) and forwards the pass-through args via `Invoke(OpRun, {"args":[…]})`; `NestedCommandProvider` nests an external command under a parent (e.g. `charly check kube`). The BUILTIN command path is `provider_command.go` (`CommandProvider.KongCommand()` + Go `Run`; `builtinCommandBase.Invoke` is in-proc-only) |

@@ -138,10 +138,10 @@ type VmCharlyInstall struct {
 
 | Strategy | Behavior |
 |---|---|
-| `auto` (default) | scp the local `charly` binary (`os.Executable()`) into the guest post-boot via VmDeployTarget |
+| `auto` (default) | scp the local `charly` binary (`os.Executable()`) into the guest post-boot via the vm lifecycle hook's `PrepareVenue` (`EnsureCharlyInGuest`) |
 | `scp` | explicit form of auto |
 | `url` | cloud-init runcmd downloads charly from URL at first boot |
-| `skip` | user manages charly install; VmDeployTarget verifies presence only |
+| `skip` | user manages charly install; the vm lifecycle hook's `PrepareVenue` verifies presence only |
 
 ## Validation (charly/schema/vm.cue)
 
@@ -182,7 +182,7 @@ The legacy `VmConfig` type + `BoxConfig.Vm` + `BoxConfig.Libvirt` + `ResolvedBox
 - `/charly-vm:vms-catalog` — YAML-authoring companion (when to pick cloud_image vs bootc, adopt pattern, step-by-step recipes)
 - `/charly-internals:libvirt-renderer` — `LibvirtDomain` rendering + pure render functions
 - `/charly-internals:cloud-init-renderer` — `RenderCloudInit`, `composeUsers`, seed ISO
-- `/charly-internals:vm-deploy-target` — VmDeployTarget consuming VmSpec via DeployExecutor
+- `/charly-internals:vm-deploy-target` — the external vm deploy + the vmSubstrateLifecycle hook consuming VmSpec via DeployExecutor
 - `/charly-internals:ovmf` — `ResolveOvmfForSpec` reads `spec.Firmware`
 - `/charly-internals:cutover-policy` — why the legacy surface was deleted in one PR
 - `/charly-vm:vm` — command-family skill; reads vm.yml through VmSpec

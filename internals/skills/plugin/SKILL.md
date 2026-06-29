@@ -73,9 +73,10 @@ See "Authoring an external COMMAND plugin" below.
   A bed/deploy that uses an external deploy SUBSTRATE word is recognized at config-PARSE time (before the
   provider connects) and routed host-side by the shared check classifier. An external **`run:` plugin verb /
   step** composed INSIDE a deploy (a `local:`/`vm:` target, where the install runs ON the target, not baked
-  into an image) likewise EXECUTES at deploy: it lowers to an `ExternalPluginStep` IR node whose `EmitLocal` /
-  `EmitVM` `Invoke(OpExecute)` WITH the live `DeployExecutor` on the SAME reverse channel, so the plugin runs
-  its deploy-context effect on the target and RETURNS its teardown `ReverseOp`s, which the target records to
+  into an image) likewise EXECUTES at deploy: it lowers to an `ExternalPluginStep` IR node which the external
+  `local:`/`vm:` deploy walk reaches as a host-engine step over `RunHostStep`, where `executeExternalPluginStep`
+  `Invoke(OpExecute)`s WITH the live `DeployExecutor` on the SAME reverse channel, so the plugin runs
+  its deploy-context effect on the target and RETURNS its teardown `ReverseOp`s, which the host records to
   the ledger and replays at `charly bundle del` (record-and-replay, the SAME `spec.DeployReply` wire as the
   deploy target — R3). Only an EXTERNAL provider is routed there (the `executorInvoker` discriminator,
   satisfied SOLELY by the out-of-process `grpcProvider`); a builtin `ProvisionActor` verb keeps its in-proc

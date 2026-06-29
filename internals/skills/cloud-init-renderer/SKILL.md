@@ -29,7 +29,7 @@ Lives **host-side**, in the `charly` binary. The **guest-side** `/charly-distros
 func RenderCloudInit(spec *VmSpec, rt CloudInitRuntimeParams) (userData, metaData, networkConfig string, err error)
 ```
 
-Returns three strings — the three files NoCloud expects on the seed ISO. The caller (`BuildCloudImage` or `VmDeployTarget`) then calls `WriteSeedISO` to pack them.
+Returns three strings — the three files NoCloud expects on the seed ISO. The caller (`BuildCloudImage` or the vm deploy preflight) then calls `WriteSeedISO` to pack them.
 
 **Egress validation gate.** Before returning, each rendered document is validated
 against a CUE schema — user-data against the vendored Canonical cloud-config
@@ -122,7 +122,7 @@ The ISO is mounted by QEMU as a CD-ROM; cloud-init's NoCloud datasource reads `/
 
 ## EnsureCharlyInGuest (charly_install.strategy state machine)
 
-Runs post-boot inside `VmDeployTarget.Emit` after cloud-init completes. Dispatches on `spec.CloudInit.CharlyInstall.Strategy`:
+Runs post-boot inside the vm deploy preflight (the `vmSubstrateLifecycle` hook's `PrepareVenue`, `charly/vm_deploy_lifecycle.go`) after cloud-init completes, BEFORE the plugin walks the plans. Dispatches on `spec.CloudInit.CharlyInstall.Strategy`:
 
 | Strategy | Action |
 |---|---|

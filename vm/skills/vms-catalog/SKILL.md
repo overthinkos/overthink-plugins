@@ -219,7 +219,7 @@ Idempotent. Harvests the legacy fields into `vms:` entries, preserving any pre-e
 - `/charly-internals:libvirt-renderer` — libvirt XML emission
 - `/charly-internals:cloud-init-renderer` — NoCloud seed ISO + user-data emission
 - `/charly-internals:ovmf` — UEFI firmware path resolution (when `firmware:` ≠ `bios`)
-- `/charly-internals:vm-deploy-target` — `VmDeployTarget` in the InstallPlan pipeline
+- `/charly-internals:vm-deploy-target` — the external vm deploy in the InstallPlan pipeline
 - `/charly-internals:cutover-policy` — Hard Cutover by Default policy
 - `/charly-distros:cloud-init` — guest-side cloud-init layer (pairs with host-side `cloud_init:` emission)
 - `/charly-distros:qemu-guest-agent` — virtio-serial channel for host↔guest comms

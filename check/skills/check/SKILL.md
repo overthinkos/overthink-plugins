@@ -146,7 +146,7 @@ memory) is ALWAYS preserved. Set `defaults.keep_check_runs` in `charly.yml`
 | Bed | Target | Ref | Surface |
 |---|---|---|---|
 | `check-sway-browser-vnc-pod` | pod | `image: sway-browser-vnc` | cdp/wl/vnc/dbus/mcp/record + pod-side file/service/port/process/http |
-| `check-k3s-vm` | vm | `from: k3s-vm` | kube (all 13 methods) + guest-side file/service/port/process, http via port-forward, VmDeployTarget end-to-end |
+| `check-k3s-vm` | vm | `from: k3s-vm` | kube (all 13 methods) + guest-side file/service/port/process, http via port-forward, the external vm deploy end-to-end |
 | `check-pod` | pod | `image: check-pod` | combined mechanism bed: `candy:` image build (a `candy:` carrying `base:`/`from:`) + `candy:` layer composition order + `kind: pod` runtime (nc :18794 + supervisord) + every DeployTarget rendering path |
 | `check-local` | local | `from: check-local-app` | `kind: local` layer apply via ShellExecutor |
 | `check-jupyter-pod` | pod | `image: jupyter` | jupyter-mcp regression coverage |

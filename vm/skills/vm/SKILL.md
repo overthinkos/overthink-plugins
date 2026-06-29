@@ -509,7 +509,7 @@ Expected. The agent needs a `virtio-serial` channel that charly's QEMU backend d
 - `/charly-internals:vm-spec` — Go type reference; validation rules; migration map
 - `/charly-internals:libvirt-renderer` — RenderDomainXML + device emission + passt backend + virtio-gpu
 - `/charly-internals:cloud-init-renderer` — RenderCloudInit + composeUsers + seed ISO + charly_install
-- `/charly-internals:vm-deploy-target` — VmDeployTarget / SSHExecutor / VmDeployState
+- `/charly-internals:vm-deploy-target` — the external vm deploy + SSHExecutor + VmDeployState
 - `/charly-internals:ovmf` — UEFI firmware path resolution; per-VM NVRAM; bios-skips-loader sentinel
 - `/charly-internals:cutover-policy` — hard cutover policy
 - `/charly-build:migrate` — `charly migrate` legacy conversion

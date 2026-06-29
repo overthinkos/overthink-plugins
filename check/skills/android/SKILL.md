@@ -189,7 +189,7 @@ There is no in-proc android deploy target.
 - `charly/install_plan.go` — `ApkInstallStep`; `charly/install_build.go` —
   `compileApkStep` (the preresolver reads this step host-side; no DeployTarget executes it).
 - `charly/unified.go` — loader wiring (mirrors every `k8s` site).
-- `charly/deploy.go` `BundleNode.Android`; `charly/deploy_add_cmd.go` dispatch +
+- `charly/deploy.go` `BundleNode.Android`; `charly/bundle_add_cmd.go` dispatch +
   `--node-only`; `charly/deploy_chain.go` / `charly/deploy_tree.go` passthrough.
 
 ## Related skills
