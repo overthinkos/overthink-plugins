@@ -56,8 +56,12 @@ dispatched OUT-OF-PROCESS: the declared word is prescanned into the Kong grammar
 is LAZY-connected on the first actual `charly <word>` invocation, which forwards the pass-through args via
 `Invoke(OpRun)`. `builtinCommandBase.Invoke` returning "in-process only" is the BUILTIN command path ALONE (a
 builtin command contributes via its static `KongCommand()` + Go `Run` handler and never serves itself
-out-of-process) — NOT a class-level limit. Each class's leg differs by lifecycle phase: verb/kind/deploy/step/
-builder ride build (`OpEmit`/`OpResolve`) and/or deploy (`OpExecute`); command rides CLI invocation (`OpRun`).
+out-of-process) — NOT a class-level limit. Each class's leg differs by lifecycle phase: verb/deploy/step/
+builder ride build (`OpEmit`/`OpResolve`) and/or deploy (`OpExecute`); command rides CLI invocation (`OpRun`);
+a **kind** rides CONFIG LOAD (`OpLoad`) — its serving plugin is recognized + connected at config-PARSE by the
+F4 prescan (`registerDeclaredKind` + `connectDeclaredKindPlugins`, re-entrancy-guarded), so a `kind: <word>`
+entity whose plugin is NOT compiled in decodes via `runPluginKind` during load. Reference (out-of-process-only):
+`candy/plugin-example-kind`; loader mechanism: `/charly-internals:go` (`plugin_prescan.go`).
 See "Authoring an external COMMAND plugin" below.
 
 - **The perf invariant that makes placement free.** A builtin dispatches through its typed in-proc fast path
