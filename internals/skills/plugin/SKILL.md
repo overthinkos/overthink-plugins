@@ -84,7 +84,15 @@ See "Authoring an external COMMAND plugin" below.
   host-served executor reverse channel — the plugin applies the deployment's ops on the real venue it cannot
   hold across the process boundary (`OpExecute`), and the host records the returned teardown ops to the ledger.
   A bed/deploy that uses an external deploy SUBSTRATE word is recognized at config-PARSE time (before the
-  provider connects) and routed host-side by the shared check classifier. An external **`run:` plugin verb /
+  provider connects) and routed host-side by the shared check classifier. **A substrate may ALSO bring its OWN
+  host-side venue LIFECYCLE + PRERESOLVE (F6):** a `class:deploy` capability declaring `Lifecycle=true` gets a
+  wire-backed `substrateLifecycle` registered at plugin-load — the host calls its `OpPrepareVenue`/`OpStart`/
+  `OpStop`/`OpStatus`/`OpRebuild`/… (host→plugin on `Provider.Invoke`), and `OpPrepareVenue` returns a
+  `spec.VenueDescriptor` the host re-materializes into a real executor (the live executor never crosses the
+  wire). One declaring `Preresolve=true` gets a wire-backed `deployPreresolver` (`OpPreresolve` → the opaque
+  `DeployVenue.Substrate` payload), generalizing the in-core k8s/android preresolvers. Reference
+  (out-of-process-only): `candy/plugin-example-lifecycle`; mechanism: `/charly-internals:install-plan`
+  (`substrate_lifecycle_grpc.go`). This is the channel M4 reuses to externalize the pod/vm lifecycles. An external **`run:` plugin verb /
   step** composed INSIDE a deploy (a `local:`/`vm:` target, where the install runs ON the target, not baked
   into an image) likewise EXECUTES at deploy: it lowers to an `ExternalPluginStep` IR node which the external
   `local:`/`vm:` deploy walk reaches as a host-engine step over `RunHostStep`, where `executeExternalPluginStep`
