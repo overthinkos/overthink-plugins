@@ -29,7 +29,8 @@ fetches and extracts the one binary, so the candy is distro-agnostic.
 
 charly's **runtime never shells out to `cue`** — every build/deploy/check path
 validates through the **embedded `cuelang.org/go` library** (the `cueSchemaCtx`
-in `charly/cue_schema.go`, the egress validator in `charly/egress.go`). The `cue`
+in `charly/cue_schema.go`, and the egress validator in the compiled-in
+`candy/plugin-egress` — M16 — fronted by the `charly/egress.go` shim). The `cue`
 CLI is here for the **developer/agent workflow**:
 
 - running the offline schema-vendoring pipeline (`cue import jsonschema:`,
@@ -58,7 +59,7 @@ charly bundle add cue cue --target local   # installs /usr/local/bin/cue on this
 
 ## Cross-References
 
-- `/charly-internals:egress` — the egress-validation subsystem the cue CLI feeds (the vendoring pipeline, `schema/vendor/`).
+- `/charly-internals:egress` — the egress-validation subsystem the cue CLI feeds (the vendoring pipeline, `candy/plugin-egress/egress-schemas/vendor/`).
 - `/charly-build:validate` — `charly box validate` (the ingress side; uses the embedded library, not this CLI).
 - `/charly-image:layer` — the `download:` verb the candy uses.
 
