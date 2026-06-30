@@ -1,7 +1,7 @@
 ---
 name: migrate
 description: |
-  MUST be invoked before any work involving: the `charly migrate` command (the single idempotent migration that brings any opencharly config up to the latest schema CalVer), the CalVer schema-version stamp (`version: YYYY.DDD.HHMM`), the ordered migration chain / registry (charly/migrate_registry.go), the `LatestSchemaVersion()` load-time gate, adding a new schema cutover as a migration step, or the calver-schema int→CalVer transition.
+  MUST be invoked before any work involving: the `charly migrate` command (the single idempotent migration that brings any opencharly config up to the latest schema CalVer), the CalVer schema-version stamp (`version: YYYY.DDD.HHMM`), the ordered migration chain / registry (the compiled-in candy/plugin-migrate, fronted by the in-core charly/migrate.go shim), the `LatestSchemaVersion()` load-time gate, adding a new schema cutover as a migration step, or the calver-schema int→CalVer transition.
 ---
 
 # charly migrate — single-command schema migration
@@ -17,12 +17,12 @@ The project directory is the current working directory; use the top-level `-C` /
 
 ## CalVer schema versioning
 
-The YAML schema version is a **CalVer string** — `version: YYYY.DDD.HHMM`, the same `ComputeCalVer` scheme as image tags (e.g. the current HEAD `version: 2026.172.0006`). It is CANONICAL fixed-width: a 4-digit year, a 3-digit zero-padded day-of-year, and a 4-digit zero-padded HHMM, so a plain alphanumeric sort of CalVer strings is chronological. `ParseCalVer` is EXTREMELY STRICT — it accepts ONLY that exact form (no `version: 4`, no non-padded `2026.45.830`), and a non-canonical value is "not a CalVer", which the load gate treats as older-than-HEAD so it flows into `charly migrate` and is re-stamped canonical. The `calver-schema` migration step (registry HEAD) converts the legacy integer `version: 4` to this form. Every versioned file carries the stamp:
+The YAML schema version is a **CalVer string** — `version: YYYY.DDD.HHMM`, the same `ComputeCalVer` scheme as image tags (e.g. the current HEAD `version: 2026.174.1100`). It is CANONICAL fixed-width: a 4-digit year, a 3-digit zero-padded day-of-year, and a 4-digit zero-padded HHMM, so a plain alphanumeric sort of CalVer strings is chronological. `ParseCalVer` is EXTREMELY STRICT — it accepts ONLY that exact form (no `version: 4`, no non-padded `2026.45.830`), and a non-canonical value is "not a CalVer", which the load gate treats as older-than-HEAD so it flows into `charly migrate` and is re-stamped canonical. The `calver-schema` migration step (registry HEAD) converts the legacy integer `version: 4` to this form. Every versioned file carries the stamp:
 
 - every project `charly.yml` (splitting into per-kind `vm.yml` / `local.yml` / … siblings is an optional `import:` convenience a project MAY use — never the default; see `/charly-image:image`)
 - the per-host `~/.config/charly/charly.yml`
 
-`charly/version.go` provides `ParseCalVer(string) (CalVer, bool)` and `CalVer.Less` (generation-only `ComputeCalVer` is unchanged). `LatestSchemaVersion()` (in `charly/migrate_registry.go`) is the curated **HEAD** value — the constant every file is stamped to and the value the load-time gate requires.
+The parsed `CalVer` type, `ParseCalVer(string) (CalVer, bool)`, `CalVer.Less`, `MustCalVer`, and the curated **HEAD** `LatestSchemaVersion()` live in **`charly/plugin/kit`** (the C13a migrate-chain externalization moved them there so BOTH charly core and the compiled-in `candy/plugin-migrate` import the ONE copy); `charly/version.go` re-aliases `CalVer`/`ParseCalVer`/`LatestSchemaVersion` so every in-core call site is unchanged (generation-only `ComputeCalVer` stays in `version.go`). `LatestSchemaVersion()` is the HEAD value — the constant every file is stamped to and the value the load-time gate requires.
 
 ### Per-push release git tags (decoupled from `version:`)
 
@@ -30,7 +30,11 @@ Every push of an charly-project repo (one with an `charly.yml`) carries a **fres
 
 ## The migration chain (registry)
 
-Every hard-cutover schema change the project has ever shipped is **one `MigrationStep`** in the ordered registry `migrationSteps()` (`charly/migrate_registry.go`), stamped with the CalVer of the date it landed and listed **chronologically** — the order the cutovers were authored in, which is the only correct replay order for an arbitrarily-old config. `charly migrate` runs the whole chain; each step's own idempotency guard makes running it whole safe (already-current files are no-ops).
+Every hard-cutover schema change the project has ever shipped is **one `MigrationStep`** in the ordered registry `migrationSteps()` (`candy/plugin-migrate/migrate_registry.go` — the whole chain + every transformer is a **compiled-in plugin** since the C13a externalization; see "Architecture" below), stamped with the CalVer of the date it landed and listed **chronologically** — the order the cutovers were authored in, which is the only correct replay order for an arbitrarily-old config. `charly migrate` runs the whole chain; each step's own idempotency guard makes running it whole safe (already-current files are no-ops).
+
+### Architecture — the chain is a compiled-in candy fronted by an in-core shim (C13a)
+
+The migration chain (the `migrationSteps()` registry + every `Migrate*` transformer + the drivers + the ~25 migrator tests) lives in **`candy/plugin-migrate`** (a compiled-in plugin serving `verb:migrate`). charly core keeps only a thin shim, **`charly/migrate.go`**: `RunMigrations(ctx)` / `RunProjectMigrations(ctx)` resolve `verb:migrate`, HOST-PRELIFT the few loader-coupled inputs the candy cannot reach (the `LoadUnified` image-name + local-template sets, the `DeployConfigPath`, the `LoadBundleConfig` bundle-volume summary, the `localBuildMatchesEmbeddedVocab` build.yml verdict; the `VerbCatalog` act-verb set + the host credential store are injected once at startup), marshal the `MigrateContext` (now `charly/plugin/kit.MigrateContext`), and `Invoke(OpRun)` the plugin. `charly/migrate_cmd.go` (the `charly migrate` Kong command) calls the shim; `charly/refs.go`'s remote-cache auto-migration calls `RunProjectMigrations` via the shim. The load-time-only `RejectLegacyPluralKeys` gate stays in core (`charly/migrate_legacy_plural.go`); its shared plural→singular key map lives in kit. The operator command is unchanged.
 
 | CalVer | Step | What it does |
 |---|---|---|
@@ -76,13 +80,17 @@ Every hard-cutover schema change the project has ever shipped is **one `Migratio
 | 2026.172.0001 | probe-verb-rename | **EDGE-INHERIT cutover A**: rename the step PROBE VERBS that reused a reserved KIND word — `k8s:`→`kube:`, `group:`→`unix_group:` (+ the kube verb's `k8s_*` modifiers → `kube_*`), gated on `isStepNode` so the `k8s` deploy KIND and the Calamares `group` kind are UNTOUCHED. Raises HEAD (a closed `#Op` rejects the legacy keys). See `MigrateProbeVerbRename`. |
 | 2026.172.0003 | edge-inherit | **EDGE-INHERIT cutover B**: eliminate the `bundle:` KIND — the SUBSTRATE kind is the EDGE discriminator (pod/vm/k8s/local/android/group) and the cross-ref becomes `from:`/`image:`: `bundle:{box:I}`→`pod:{image:I}`, `bundle:{vm:V}`→`vm:{from:V}`, targetless→`group:`. RECURSES into nested members. Raises HEAD (`bundle` + the box/vm/… cross-ref fields are gone from the schema). See `MigrateEdgeInherit`. (EDGE-INHERIT cutover C — the `host:` venue kind removal + the Calamares `group`→`package-group` rename — is ZERO-corpus and ships NO migrate step: the schema change is in-place.) |
 | 2026.172.0005 | box-to-candy | **EDGE-INHERIT cutover D**: merge the `box:` KIND into `candy:` — rename every `box:` KIND discriminator to `candy:` (a `candy:` node carrying `base:` or `from:` is a full IMAGE, the former `box:`; a `candy:` node carrying neither is a LAYER fragment). The `box:` cross-ref FIELD (the VM bootc `box:` source field, the k8s/android/pod image refs), the `box/<name>/` discovery directory, the `charly box` COMMAND family, and the `BoxConfig`/`uf.Box` Go types are UNCHANGED. Raises HEAD (the closed `#Node` disjunction now has only a `candy:` arm — no `box:` arm). See `MigrateBoxToCandy`. |
-| **2026.172.0006** | **calver-schema** (HEAD) | **the universal stamper**: rewrite the top-level `version:` line of every versioned file to the HEAD CalVer (line-oriented, comment-preserving). This is the integer→CalVer transition (`version: 4` → the HEAD CalVer). **Always stays last** so `LatestSchemaVersion()` tracks it. |
+| 2026.173.1615 | matching-to-plugin | the 2026-06 matching-verb extraction: the `matching` check verb left the closed `#Op`/`spec.OpVerbs` and became a compiled-in plugin (`candy/plugin-matching`). Converts a deterministic `check:` step (`matching:`/`contains:` → `plugin: matching` + `plugin_input:`) and strips the vestigial keys on any other step. Raises HEAD. See `MigrateMatchingToPlugin`. |
+| 2026.173.1741 | goss-verbs-to-plugin | the 2026-06 observe-only goss-verb extraction: `process`/`port`/`dns` (wave 1) + `http`/`interface`/`addr` (wave 2) left `#Op`/`spec.OpVerbs` for builtin plugin units, dispatched IN-PROCESS via the `CheckVerbProvider` `RunVerb` path. Converts a deterministic `check:` step (verb + companion fields → `plugin: <verb>` + `plugin_input:`) and strips the vestigial keys on any other step. Raises HEAD. See `MigrateGossVerbsToPlugin`. |
+| 2026.174.0050 | state-provision-verbs-to-plugin | the 2026-06 state-provision-verb extraction: the dual-natured `unix_group`/`user`/`kernel-param`/`mount` + `command` + the typed-step `service`/`package` + `file` verbs left `#Op`/`spec.OpVerbs` for builtin plugin units. Converts a `check:` OR `run:` step to `plugin: <verb>` + `plugin_input:`; `package`/`service` lower into typed steps so their reversals survive. Raises HEAD. See `MigrateStateProvisionVerbsToPlugin`. |
+| 2026.174.0051 | drop-validate-ai-artifacts | strip the retired `validate_ai_artifacts` iterate-block flag (dead since the in-proc live-verb runtime was deleted — artifact validation is always-on in the out-of-process verb plugins). An intra-HEAD CLEANUP: does NOT raise HEAD. See `MigrateDropValidateAiArtifacts`. |
+| **2026.174.1100** | **calver-schema** (HEAD) | **the universal stamper**: rewrite the top-level `version:` line of every versioned file to the HEAD CalVer (line-oriented, comment-preserving). This is the integer→CalVer transition (`version: 4` → the HEAD CalVer). **Always stays last** so `LatestSchemaVersion()` tracks it. |
 
 Step `Name`s are for `--dry-run` / progress output only — they are no longer CLI sub-verbs. Steps that mutate per-host state (`~/.config/charly`, quadlets, `.secrets`) are flagged `TouchesHost`; see "Remote-cache auto-migration" below.
 
 ## How it runs
 
-`RunMigrations(ctx)` walks `migrationSteps()` in order, calling each `Apply(ctx)`. Each step reports whether it changed anything; nothing-changed across the whole chain prints `nothing to migrate (already at schema <HEAD>)`. Per-step backups follow the established `<file>.bak.<unix-ts>` convention (field-singular, local-deploy, require-image, drop-kdbx, and the calver-schema stamp write them). `MigrateContext` (built by `NewMigrateContext`) carries the project dir, the per-host paths, the quadlet dir, the `.secrets` path, and `DryRun`.
+The in-core `RunMigrations(ctx)` shim host-prelifts the loader-coupled inputs and `Invoke(OpRun)`s `candy/plugin-migrate`, whose handler runs `runMigrations(ctx, projectOnly)` — walking `migrationSteps()` in order, calling each `Apply(ctx)`. Each step reports whether it changed anything; nothing-changed across the whole chain prints `nothing to migrate (already at schema <HEAD>)` (progress + this line surface on the host's stderr — the compiled-in plugin shares the host process). Per-step backups follow the established `<file>.bak.<unix-ts>` convention (field-singular, local-deploy, require-image, drop-kdbx, and the calver-schema stamp write them). `MigrateContext` (`charly/plugin/kit.MigrateContext`, built by the in-core `NewMigrateContext` + the shim's prelift) carries the project dir, the per-host paths, the quadlet dir, the `.secrets` path, `DryRun`, and the host-prelifted loader inputs.
 
 ### Remote-cache auto-migration (project-only)
 
@@ -100,9 +108,9 @@ A non-CalVer value (the legacy integer `4`, empty, or garbage) parses as "older 
 
 ## Adding a future cutover
 
-1. Write the transform as an idempotent `Migrate*` function (its own file, like the existing migrators).
-2. Append ONE `MigrationStep` to `migrationSteps()` with a CalVer **strictly greater** than the current HEAD. Keep the `calver-schema` stamp **last**.
-3. Bump `latestSchemaVersion` to the new step's CalVer (the two are asserted equal by `TestRegistryHeadMatchesLatest`).
+1. Write the transform as an idempotent `Migrate*` function in `candy/plugin-migrate` (its own file, like the existing migrators). If it needs a package-main loader callback the candy cannot import, HOST-PRELIFT it in the `charly/migrate.go` shim and pass it through `kit.MigrateContext` (the pattern the 5 loader-coupled migrators use).
+2. Append ONE `MigrationStep` to `migrationSteps()` (`candy/plugin-migrate/migrate_registry.go`) with a CalVer **strictly greater** than the current HEAD. Keep the `calver-schema` stamp **last**.
+3. Bump `latestSchemaVersion` in **`charly/plugin/kit`** (`calver.go`) to the new step's CalVer (the registry's last entry uses `kit.LatestSchemaVersion()`; the two are asserted equal by `TestRegistryHeadMatchesLatest` in the candy).
 4. Update the HEAD-CalVer fixtures (the LoadUnified test fixtures + `testdata/*.yml` carry the stamp) and the repo's own versioned YAML.
 
 The operator command never changes — it stays `charly migrate`.
@@ -118,7 +126,7 @@ Any change to the YAML schema or composition format (a key rename, a deleted key
 
 ## Idempotency
 
-Running `charly migrate` twice is a no-op (`TestMigrateCalverSchema_StampsAndIdempotent`, plus each migrator's own idempotency tests). The registry invariants (HEAD == `LatestSchemaVersion()`, strictly-ascending order, unique names) are enforced by `charly/migrate_registry_test.go`.
+Running `charly migrate` twice is a no-op (`TestMigrateCalverSchema_StampsAndIdempotent`, plus each migrator's own idempotency tests). The registry invariants (HEAD == `LatestSchemaVersion()`, strictly-ascending order, unique names) are enforced by `candy/plugin-migrate/migrate_registry_test.go`.
 
 ## See Also
 

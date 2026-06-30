@@ -459,7 +459,8 @@ truth"). The recipe:
 6. **Schema-version bump ONLY on an authored WIRE-key change.** Only if the
    change alters an authored WIRE key (the YAML users write) is it a FORMAT
    change: then add a `charly migrate` step + bump `LatestSchemaVersion`
-   (`migrate_registry.go`, calver stamp last) per `/charly-build:migrate`. A pure
+   (the chain is the compiled-in `candy/plugin-migrate`; bump `latestSchemaVersion`
+   in `charly/plugin/kit`, calver stamp last) per `/charly-build:migrate`. A pure
    Go-identifier change via `@go()` is NOT a format change (wire key preserved) —
    do NOT bump the schema version.
 7. **Guards (all must pass):** `cd charly && go test ./...` (reproducibility +
