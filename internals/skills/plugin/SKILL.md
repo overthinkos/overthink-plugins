@@ -71,6 +71,14 @@ deploy/check exactly like a builtin (the folded member goes through the SAME `va
 channel that lets the seven builtin structural kind decoders (pod/vm/k8s/local/android/group/candy) be
 EXTERNALIZED. Reference (out-of-process-only): `candy/plugin-example-structkind`; the host fold is `runPluginKind`
 (`/charly-internals:go`).
+
+**A kind may serve a DEEP `OpValidate` check (F7/C8).** Beyond the static CUE input-def gate the host always
+runs (`validateAuthoredPluginInput` — unifies the body against the served `#<Kind>Input`), a kind that sets
+`ProvidedCapability.Validates = true` (the proto `validates` field) ALSO serves `OpValidate`: at load, the host
+dispatches `Invoke(OpValidate)` with the body, and the plugin returns `spec.Diagnostics` (`{Items: [{Severity,
+Message, Path}]}`) — any error-severity item FAILS the load with the messages. Use it for checks CUE cannot
+express (cross-field invariants, semantic rules). Reference: `candy/plugin-example-kind` (rejects the sentinel
+`marker: INVALID`); dispatch is `runPluginKind` (`/charly-internals:go`).
 See "Authoring an external COMMAND plugin" below.
 
 - **The perf invariant that makes placement free.** A builtin dispatches through its typed in-proc fast path
