@@ -16,7 +16,7 @@ A host/remote deploy MUST use the `host:` FIELD on a `local:` (or `pod:`) deploy
 Schema sources (read these for the canonical truth):
 
 - `charly/deploy.go` — `BundleConfig` + `BundleNode` Go types, the deploy entry shape, target discriminator.
-- `charly/pod_spec.go` — `PodSpec` Go type, `kind: pod` shape.
+- `charly/spec/cue_types_gen.go` (generated) — the `PodSpec` Go type / `kind: pod` shape.
 - `/charly-core:deploy` — the verb-level skill covering `charly bundle add` / `charly bundle del` / `charly update`.
 
 ## Nesting & membership (tree position)

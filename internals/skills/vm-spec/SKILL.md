@@ -4,7 +4,7 @@ description: |
   Go type reference for VmSpec and the discriminated-union source types
   (VmSource cloud_image | bootc | clone | imported | bootstrap). Documents every
   field, validation rules, and the adopt-user decision. Source files:
-  charly/vm_spec.go, charly/cloud_init_types.go, charly/schema/vm.cue.
+  charly/spec/cue_types_gen.go (generated), charly/schema/vm.cue, charly/vmshared/.
   MUST be invoked before editing VmSpec Go code or authoring vm.yml entries.
 ---
 
@@ -16,8 +16,8 @@ Go type reference for the VM surface. `VmSpec` + `VmSource` + `VmChecksum` + `Vm
 
 | File | Contents |
 |---|---|
-| `charly/vm_spec.go` | `VmSpec`, `VmSource`, `VmChecksum`, `VmNetwork`, `VmSSH`, `VmKeyInjection` |
-| `charly/cloud_init_types.go` | `VmCloudInit`, `VmCloudInitUser`, `VmCloudInitFile`, `VmCloudInitNetwork`, `VmCloudInitMirrors`, `VmCharlyInstall` |
+| `charly/spec/cue_types_gen.go` (generated; charly-name aliases in `spec/charly_names.go`) | `VmSpec` (= `Vm`), `VmSource`, `VmChecksum`, `VmNetwork`, `VmSSH`, `VmKeyInjection` |
+| `charly/spec/cue_types_gen.go` (generated) | `VmCloudInit`, `VmCloudInitUser`, `VmCloudInitFile`, `VmCloudInitNetwork`, `VmCloudInitMirrors`, `VmCharlyInstall` |
 | `charly/libvirt_yaml.go` | `LibvirtDomain` + 30+ sub-types (features, CPU, clock, devices, etc.) |
 | `charly/schema/vm.cue` + `cue_kind_vm.go` | `#Vm` — the closed CUE schema validating `VmSpec` + the `#LibvirtDomain`/`#VmCloudInit` subtrees (registered in the per-kind CUE registry; the Go VM/libvirt validators were deleted) |
 

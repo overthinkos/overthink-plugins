@@ -21,7 +21,7 @@ Lives **host-side**, in the `charly` binary. The **guest-side** `/charly-distros
 | `charly/cloud_init_render.go` | `RenderCloudInit`, `ResolveKeyInjectionChannels`, `composeUsers`, `composePackages`, `composeRunCmd` |
 | `charly/cloud_init_iso.go` | `WriteSeedISO` via xorriso; `genisoimage` + `mkisofs` fallbacks |
 | `charly/charly_install.go` | `EnsureCharlyInGuest` state machine (auto/scp/url/skip strategies) |
-| `charly/cloud_init_types.go` | `VmCloudInit`, `VmCloudInitUser`, `VmCloudInitFile`, `VmCloudInitNetwork`, `VmCloudInitMirrors`, `VmCharlyInstall` |
+| `charly/spec/cue_types_gen.go` (generated) | `VmCloudInit`, `VmCloudInitUser`, `VmCloudInitFile`, `VmCloudInitNetwork`, `VmCloudInitMirrors`, `VmCharlyInstall` |
 
 ## RenderCloudInit top-level
 
