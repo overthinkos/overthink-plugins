@@ -93,7 +93,7 @@ type InstallStep interface {
 }
 ```
 
-All thirteen concrete step kinds implement this interface. `Reverse()` is called at install time (not teardown) so the ledger records the exact reversal ops tied to the specific artifacts created. (`ExternalPluginStep` is the exception that proves the rule: its `Reverse()` is static-nil — its reversal ops are DYNAMIC, recorded from the plugin's `OpExecute` reply at emit time, not from the step itself.)
+All thirteen builtin concrete step kinds (plus the open `external:<word>` family — F3's `externalStep`) implement this interface. `Reverse()` is called at install time (not teardown) so the ledger records the exact reversal ops tied to the specific artifacts created. (`ExternalPluginStep` is the exception that proves the rule: its `Reverse()` is static-nil — its reversal ops are DYNAMIC, recorded from the plugin's `OpExecute` reply at emit time, not from the step itself.)
 
 ### Enums
 
@@ -123,16 +123,17 @@ Each `SystemPackagesStep` carries one phase; `--allow-repo-changes` gating is a 
 Gates apply only to the host target. `EmitOpts.AssumeYes` enables all three. See `GateEnabled(gate, opts)` in `install_plan.go`.
 
 **`StepKind`** — discriminator for concrete types:
-- `SystemPackages`, `Builder`, `Op`, `File`, `ServicePackaged`, `ServiceCustom`, `ShellHook`, `ShellSnippet`, `RepoChange`, `ApkInstall`, `LocalPkgInstall`, `Reboot`, `ExternalPlugin`.
+- The CLOSED builtin set: `SystemPackages`, `Builder`, `Op`, `File`, `ServicePackaged`, `ServiceCustom`, `ShellHook`, `ShellSnippet`, `RepoChange`, `ApkInstall`, `LocalPkgInstall`, `Reboot`, `ExternalPlugin`.
+- The OPEN external family (F3): `external:<word>` — a PLUGIN-contributed step kind served by a `class:step` provider. Not a fixed enum entry; carried OPAQUELY (see `externalStep` in the table below).
 
-The Go-internal vocabulary is the `allStepKinds` slice in `provider_step.go`; the `checkStepProviderBijection` gate asserts every kind has a registered `StepProvider` (add a kind → add it to BOTH).
+The Go-internal builtin vocabulary is the `allStepKinds` slice in `provider_step.go`; the `checkStepProviderBijection` gate asserts every BUILTIN kind has a registered `StepProvider` (add a builtin kind → add it to BOTH). An `external:<word>` kind is NOT in `allStepKinds` and registers no per-word `StepProvider` — it is recognized by the `external:` prefix (`isExternalStepKind`) and dispatched by the OPEN DEFAULT ARM in `kit.WalkPlans` + `RunHostStep`, so the closed bijection deliberately never sees it.
 
 The IR carries no image-fetch step kind. Deploys (any target) emit
 zero image-pull / image-build steps; test-bed image preflight is a
 separate, check-time concern handled by `charly/check_image_preflight.go`
 (CLAUDE.md "Deploy fetches NOTHING speculative").
 
-## The thirteen step kinds
+## The step kinds (thirteen builtin + the open `external:<word>` family)
 
 | Kind | What it carries | Venue default | Scope derivation |
 |---|---|---|---|
@@ -148,7 +149,8 @@ separate, check-time concern handled by `charly/check_image_preflight.go`
 | `ApkInstallStep` | Packages (apk specs), CandyName, CandyDir | HostNative | Always system. Only `target: android` executes it; every other target records a skip. |
 | `LocalPkgInstallStep` | PkgbuildRef, CandyName, CandyDir, ProjectDir, Format, LocalPkg (`*LocalPkgDef`) | HostNative | Always system. Compiled from a layer's per-format `localpkg:` map (the `charly` layer's `{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`) at "step 2.5" (before tasks); `compileLocalPkgStep` resolves the target distro's format FIRST (`DistroDef.LocalPkgFormat`), then the layer's source for that format, so `Format` + `LocalPkg` come from the `format.<fmt>.local_pkg:` block in the embedded `charly/charly.yml` — EVERY command rendered from config, no hardcoded build/install/glob literals. On a localpkg-capable deploy target (`target: local` / `target: vm`) the HOST builds the format's source via `LocalPkg.BuildTemplate` (pac → `makepkg`; rpm/deb → a distro-matched podman container) into `LocalPkg.PkgGlob` artifacts, then installs them onto the target via `LocalPkg.InstallTemplate` — the format's AUTO-RESOLVING local-file install (`pacman -U` / `dnf install` / `apt-get install`), which pulls the package's repo deps automatically. There is NO dependency-closure builder (the aur-LAYER deploy path still reuses the shared `buildDepPkgsOnHost`/`transferAndInstallPkgs` leg, R3). `LocalPkg.Probe` gates the install leg; `LocalPkg.SourceSentinel` (`PKGBUILD`/`*.spec`/`debian/control`) marks the source dir. `resolveLocalPkgDir` walks up from `ProjectDir`, so a consumer nested under `box/<distro>` finds the superproject `pkg/<fmt>`. At IMAGE build the install is **mode-switched by box type** (unified in `renderLocalPkgImageInstall`, shared by `OCITarget` + `generate.go writeCandySteps` — R3): a PRODUCTION box DOWNLOADS the published release (`LocalPkg.DownloadTemplate`), while a DISPOSABLE check bed BUILDS the package from LOCAL in-development source and COPYs it in — see "Check-vs-production charly toolchain" below. Skipped only on a distro with no localpkg-capable format (the layer's task fallback). Machinery: `charly/localpkg.go`; config: the embedded `charly/charly.yml` `format.<fmt>.local_pkg:` block. |
 | `RebootStep` | CandyName | HostNative | Always system; `Reverse()` empty. Emitted last when a layer sets `reboot: true`. Only the external `vm` deploy reboots — its `candy/plugin-deploy-vm` walk drives the step host-side over `RunHostStep`, where the host reboots the guest + waits for the deterministic boot_id change (a rebootable venue). OCI/pod/k8s skip; the external `local:` deploy skips + warns (never reboots the operator host). |
-| `ExternalPluginStep` | Op (the `run: plugin:` op — verb word + `plugin_input` + `RunAs`), CandyName, ResolvedUser, Distros | HostNative | From ResolvedUser (`opStepScope`: root/empty → system; else user). `Reverse()` static-nil — teardown ops are recorded DYNAMICALLY from the plugin's `OpExecute` reply. A `run: plugin: <verb>` step whose verb is served by an EXTERNAL (out-of-process) plugin — see "ExternalPluginStep notes" below. |
+| `ExternalPluginStep` | Op (the `run: plugin:` op — verb word + `plugin_input` + `RunAs`), CandyName, ResolvedUser, Distros | HostNative | From ResolvedUser (`opStepScope`: root/empty → system; else user). `Reverse()` static-nil — teardown ops are recorded DYNAMICALLY from the plugin's `OpExecute` reply. A `run: plugin: <verb>` step whose verb is served by an EXTERNAL (out-of-process) `class:verb` plugin — see "ExternalPluginStep notes" below. |
+| `externalStep` (F3, kind `external:<word>`) | Word, ScopeV/VenueV/GateV (plugin-DECLARED), Payload (opaque `json.RawMessage`), CandyName, reverseOps (dynamic) | DECLARED (StepContract.venue) | DECLARED (StepContract.scope) — advisory, since the plugin self-execs `RunSystem`/`RunUser`. A PLUGIN-CONTRIBUTED step kind: a `run: plugin: <word>` whose word is a `class:step` provider declaring a `StepContract`. `compileActOp` lowers it (resolve(ClassStep) + the carrier's contract → `externalStep` with the opaque `plugin_input` as Payload); `stepToView`/`stepFromView` round-trip it with the Scope/Venue/Gate AUTHORITATIVE (not recomputed); the host's OPEN DEFAULT ARM in `kit.WalkPlans` + `RunHostStep` dispatches it via `executeExternalStep` → `Invoke(OpExecute)` over the SAME reverse channel `ExternalPluginStep` uses (R3, `invokeStepExecute`). `Reverse()` returns the dynamic ops recorded from the reply. THE carrier M2 reuses to externalize the builtin step kinds. The `StepContract` declaration rides `ProvidedCapability.step_contract` over Describe (`charly/plugin/proto`); example: `candy/plugin-example-stepkind`. |
 
 ### Check-vs-production charly toolchain (the `--dev-local-pkg` distinction)
 

@@ -114,6 +114,15 @@ SELF-CONTAINED (package-less, references no base def) and used two ways — the 
    the plugin's def (e.g. `#MyprobeInput`). The host **never reads a candy's `schema/` dir from disk** — the
    schema travels WITH the plugin.
 
+**A `class:step` plugin ALSO declares its install-step contract over Describe (F3).** A step plugin (a
+PLUGIN-contributed install-step KIND, distinct from a `class:verb` step which rides the fixed
+`ExternalPlugin` kind) sets `ProvidedCapability.StepContract{Scope,Venue,Gate}` (the proto
+`step_contract` field; `sdk.ProvidedCapability.StepContract`) — the host carries that DECLARED contract so
+a `run: plugin: <word>` lowers to an `externalStep` (kind `external:<word>`, opaque Payload) the OPEN
+DEFAULT ARM dispatches via `OpExecute`, with NO compiled-in case. Reverse is NOT declared (an external
+step's teardown ops are recorded dynamically from its `OpExecute` reply). Authoring + IR mechanism:
+`/charly-internals:install-plan` (the `externalStep` row); reference: `candy/plugin-example-stepkind`.
+
 **Zero builtin/external distinction in schema handling.** Both arrive at the host as a `PluginUnit`
 (`Providers` + `Schema`) from `PluginTransport.Connect` — `InProcTransport` for a builtin, `LocalTransport`
 (go-plugin exec) for an external. The host's load/gate/validate code NEVER branches on which kind it is. The
