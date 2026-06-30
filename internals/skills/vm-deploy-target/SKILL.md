@@ -193,7 +193,7 @@ The env.d-sourcing managed block is written by `kit.WalkPlans`'s finalizer
 deploy it lands in the guest's detected login-shell init via the reverse legs
 (`GetFile` the existing rc, merge the fenced block, `PutFile` it back). The
 shared body/path helpers (`ManagedBlockBody`, `ShellInitFilePath`,
-`replaceOrAppendManagedBlock`, `EnsureManagedBlockAt`, `RemoveManagedBlock`)
+`replaceOrAppendManagedBlock`)
 live in `charly/shell_profile.go`; the plugin renders the equivalent via
 `charly/plugin/kit/profile.go`. Without this block the per-layer env.d files
 exist but are never sourced, so PATH never picks up `~/.npm-global/bin` etc. The
