@@ -98,6 +98,15 @@ See "Authoring an external COMMAND plugin" below.
   envelope tax — placement is a free build/deploy decision, not a performance trade-off. Locked by
   `TestPerfGate_BuiltinVerbsSkipEnvelope` + `BenchmarkVerbTypedDispatchFork` (0-alloc) vs
   `BenchmarkVerbEnvelopeMarshal` (`provider_bench_test.go`).
+- **Plugin↔plugin + host-build (F10).** A plugin running WITH a reverse channel (deploy/step/check/build —
+  any Invoke the host stands a broker up for) can call BACK to the host to invoke ANOTHER plugin or request a
+  host-side build, via the `sdk.Executor`: `InvokeProvider(class, word, op, params, env)` — the host resolves
+  the peer in the registry and Invokes it on the caller's behalf (threading the SAME venue executor into an
+  out-of-process target over a nested broker — the host is the dispatch broker, since it owns the registry);
+  and `HostBuild(kind, spec)` — the host runs the registered host-builder for `kind` (the build ENGINE stays in
+  core). This is the shared-capability seam: a SHARED plugin (egress, k8s-gen, arbiter) is "a plugin others
+  invoke", never "kept in core". Reference: `candy/plugin-example-dispatch`; mechanism:
+  `/charly-internals:install-plan` (`plugin_dispatch_reverse.go`).
 - **Deploy time.** An external deploy-target provider runs its full Add/Test/Update/Del lifecycle over the
   host-served executor reverse channel — the plugin applies the deployment's ops on the real venue it cannot
   hold across the process boundary (`OpExecute`), and the host records the returned teardown ops to the ledger.
