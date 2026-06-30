@@ -62,6 +62,15 @@ a **kind** rides CONFIG LOAD (`OpLoad`) — its serving plugin is recognized + c
 F4 prescan (`registerDeclaredKind` + `connectDeclaredKindPlugins`, re-entrancy-guarded), so a `kind: <word>`
 entity whose plugin is NOT compiled in decodes via `runPluginKind` during load. Reference (out-of-process-only):
 `candy/plugin-example-kind`; loader mechanism: `/charly-internals:go` (`plugin_prescan.go`).
+
+**A kind decode is FLAT or STRUCTURAL (F5).** A FLAT kind (the default) lands its `OpLoad` body OPAQUELY in
+`uf.PluginKinds[disc][name]` (F4). A STRUCTURAL kind sets `ProvidedCapability.Structural = true` (the proto
+`structural` field) in its Describe — its `OpLoad` returns a `spec.Deploy` (BundleNode) MEMBER TREE the host
+folds into `uf.Bundle`, the SAME map a builtin pod/group/candy decoder populates, so the entity participates in
+deploy/check exactly like a builtin (the folded member goes through the SAME `validateDeploy`). This is the
+channel that lets the seven builtin structural kind decoders (pod/vm/k8s/local/android/group/candy) be
+EXTERNALIZED. Reference (out-of-process-only): `candy/plugin-example-structkind`; the host fold is `runPluginKind`
+(`/charly-internals:go`).
 See "Authoring an external COMMAND plugin" below.
 
 - **The perf invariant that makes placement free.** A builtin dispatches through its typed in-proc fast path
