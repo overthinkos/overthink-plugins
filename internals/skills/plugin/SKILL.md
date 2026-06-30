@@ -302,6 +302,16 @@ calls `connectCommandPlugin` (scoped to the one word) then `Invoke(OpRun, {"args
 invocation that is NOT `charly <word>` is byte-for-byte unaffected. (A builtin command, by contrast, contributes
 via its compiled-in `CommandProvider.KongCommand()` + Go `Run` handler — `provider_command.go`.)
 
+**A command candy can ALSO be COMPILED IN (F8) — placement-invisible like every other class.** List its candy
+in `compiled_plugins:` and it registers in-proc (an `inprocProvider`, Class command); the host builds the SAME
+dynamic Kong grammar (`externalCommandHolder`, pass-through `Args`) and `dispatchCommand` routes it IN-PROC via
+`Invoke(OpRun)` (`dispatchInProcCommand`) instead of `syscall.Exec` — the candy's `Invoke(OpRun)` handler runs in
+charly's own process (native stdio/TTY). So author a command candy DUAL-PLACEMENT: an importable provider
+package (`NewProvider`/`NewMeta`, `Invoke(OpRun)` runs the effect, `Describe` advertises `command:<word>`) + a
+`cmd/serve` `sdk.Main(..., CliMain)` shim for the out-of-process path, both calling ONE shared effect (mirror
+`candy/plugin-example-command`). This is the command half of compile-in-for-all-six-classes; the M-series moves
+the dedicated builtin commands into candies on this surface.
+
 ## Why self-contained schemas
 
 A plugin's `#<Word>Input` references NO base def, so it compiles STANDALONE — the exact property
