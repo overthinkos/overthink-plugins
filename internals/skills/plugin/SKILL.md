@@ -63,6 +63,16 @@ F4 prescan (`registerDeclaredKind` + `connectDeclaredKindPlugins`, re-entrancy-g
 entity whose plugin is NOT compiled in decodes via `runPluginKind` during load. Reference (out-of-process-only):
 `candy/plugin-example-kind`; loader mechanism: `/charly-internals:go` (`plugin_prescan.go`).
 
+**A plugin DECLARES its lifecycle PHASE (F9).** Beyond its class, a capability declares a `Phase` (the
+`sdk.Phase*` set: `bootstrap → schema → load → build → runtime`, default `runtime`) via
+`ProvidedCapability.Phase` over Describe — the ordered point at which the kernel loads/invokes it. The
+**`bootstrap`** phase runs BEFORE config validation/migration: the kernel invokes a bootstrap plugin's
+`OpBootstrap` on the RAW config bytes (`runBootstrapPhase`, in `LoadUnified` before the schema gate), applying
+any transformed bytes it returns — so early-running capabilities (migrate, egress) can themselves be plugins.
+Bootstrap plugins are **compiled-in only** (no validated config exists yet to discover an out-of-process
+source). Reference: `candy/plugin-example-bootstrap` (a no-op returning the bytes unchanged). M15 (migrate) /
+M16 (egress) move those in-core capabilities onto this phase machinery.
+
 **A kind decode is FLAT or STRUCTURAL (F5).** A FLAT kind (the default) lands its `OpLoad` body OPAQUELY in
 `uf.PluginKinds[disc][name]` (F4). A STRUCTURAL kind sets `ProvidedCapability.Structural = true` (the proto
 `structural` field) in its Describe — its `OpLoad` returns a `spec.Deploy` (BundleNode) MEMBER TREE the host
