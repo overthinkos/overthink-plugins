@@ -76,10 +76,12 @@ M16 (egress) move those in-core capabilities onto this phase machinery.
 **A kind decode is FLAT or STRUCTURAL (F5).** A FLAT kind (the default) lands its `OpLoad` body OPAQUELY in
 `uf.PluginKinds[disc][name]` (F4). A STRUCTURAL kind sets `ProvidedCapability.Structural = true` (the proto
 `structural` field) in its Describe — its `OpLoad` returns a `spec.Deploy` (BundleNode) MEMBER TREE the host
-folds into `uf.Bundle`, the SAME map a builtin pod/group/candy decoder populates, so the entity participates in
+folds into `uf.Bundle`, the SAME map the in-proc pod/candy decoders populate, so the entity participates in
 deploy/check exactly like a builtin (the folded member goes through the SAME `validateDeploy`). This is the
-channel that lets the seven builtin structural kind decoders (pod/vm/k8s/local/android/group/candy) be
-EXTERNALIZED.
+channel that externalizes the structural kind decoders: **`group` is DONE (C2-group — candy/plugin-group,
+COMPILED-IN)**; the deploy-substrate TEMPLATE kinds (pod/vm/k8s/local/android) are the next consumers (they need
+a per-substrate template-fold arm for the uf.Pod/uf.VM/… shape — a follow-up); `candy` stays core
+(bootstrap-loader — candyIsImage/buildCandy run before plugins connect).
 
 **AUTHORED-member INPUT-threading (the enabler that makes group/substrate externalization real).** A
 structural kind's whole POINT is preserving the node's AUTHORED resource-member children (peers, nested
@@ -90,7 +92,9 @@ authored member children via the SAME core `buildBundleNode` recursion the built
 `OpLoad` via `op.Env` (`spec.StructuralKindLoadEnv{Members}`). The plugin decodes only its kind-specific scalar
 body from `op.Params` and ATTACHES the host-threaded members to its `spec.Deploy` reply — Members for a
 targetless kind (group), Children for a workload — so the reconstructed `uf.Bundle` entry is BYTE-EQUIVALENT to
-a builtin `group`'s in-proc decode (`${HOST:…}` refs survive as literals, resolved later by tree position). A
+the FORMER builtin `group`'s in-proc decode — the invariant C2-group's `check-group` bed + the
+`TestExternalStructKind_StructuralDecode` byte-equivalence test both prove (`${HOST:…}` refs survive as
+literals, resolved later by tree position). A
 FLAT kind carrying member children is a HARD error (never a silent drop). The parser admits sub-entity children
 under a recognized external STRUCTURAL kind (`externalKindMayNestMembers`), core non-resource kinds stay guarded.
 Reference (out-of-process-only): `candy/plugin-example-structkind` (decodes deploy-config scalars from
