@@ -205,10 +205,12 @@ See "Authoring an external COMMAND plugin" below.
   connect seam, class-agnostically:
   - a `run:` plugin **verb / step** returns a Containerfile fragment via `OpEmit` → `spec.EmitReply.Fragment`,
     spliced verbatim into the Containerfile (egress-validated).
-  - an external **builder** (`ClassBuilder`) selected by a candy's `external_builder: <word>` field returns a
-    multi-stage build via `Invoke(OpResolve)` → `spec.BuilderResolveReply`: its `Stage` (a `FROM <ref> AS <name>`
-    block) is spliced PRE-main-FROM and its `CopyArtifacts` (`COPY --from=<stage> …`) POST-main-FROM. This is the
-    build-time BUILDER leg — the multi-stage counterpart of the verb/step OpEmit leg, so `builder` is an
+  - a **builder** (`ClassBuilder`) returns a multi-stage build via `Invoke(OpResolve)` → `spec.BuilderResolveReply`:
+    its `Stage` (a `FROM <ref> AS <name>` block) is spliced PRE-main-FROM, its `CopyArtifacts`+`CopyBinary`
+    (`COPY --from=<stage> …`) POST-main-FROM, and an INLINE builder's `InlineFragment` in-candy. This serves BOTH
+    the four DETECTION-builders (pixi/npm/aur/cargo — selected by a candy's detect files, rendered via the shared
+    `charly/plugin/kit.BuilderResolve`, C10) AND an out-of-tree builder a candy selects with `external_builder: <word>`.
+    This is the build-time BUILDER leg — the multi-stage counterpart of the verb/step OpEmit leg, so `builder` is an
     external-capable class at build too (alongside verb/kind/deploy/step). The `command` class has no build-time
     leg — a command dispatches at CLI invocation, not at build — and is external-capable THERE via `Invoke(OpRun)`
     (the Placement paragraph above), so EVERY class (kind/verb/deploy/step/builder/command) is external-capable.
