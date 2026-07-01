@@ -516,8 +516,9 @@ credential_keyring,credential_config,secret_service,verb_credential,credential_a
 core keeps only the thin adapter `charly/credential_plugin.go` (`CredentialStore` /
 `ResolveCredential` / `DefaultCredentialStore` → `verb:credential`) + `charly/secrets.go`
 (podman-secret provisioning) + `charly/migrate_secrets_kdbx.go` (`charly migrate`). On an
-installed host the plugin lives beside charly at `/usr/lib/charly/plugins` (the PKGBUILD
-bakes the binary + its `.providers` manifest).
+installed host the plugin lives beside charly at `/usr/lib/charly/plugins` (every native
+package build — the arch PKGBUILD and the fedora `.rpm` / debian `.deb` builds — bakes the
+binary + its `.providers` manifest, off the shared `pkg/host-command-plugins.txt` set).
 
 ## When to Use This Skill
 
