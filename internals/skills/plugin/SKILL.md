@@ -78,13 +78,18 @@ M16 (egress) move those in-core capabilities onto this phase machinery.
 `structural` field) in its Describe — its `OpLoad` returns a `spec.Deploy` (BundleNode) MEMBER TREE the host
 folds into `uf.Bundle`, the SAME map the in-proc pod/candy decoders populate, so the entity participates in
 deploy/check exactly like a builtin (the folded member goes through the SAME `validateDeploy`). This is the
-channel that externalizes the structural kind decoders: **`group` is DONE (C2-group — candy/plugin-group,
-COMPILED-IN)** and **the 5 deploy-substrate kinds pod/vm/k8s/local/android are DONE (C2-substrate —
-candy/plugin-substrate, COMPILED-IN, one provider serving all 5)**. The substrate consumer added the
-TEMPLATE-map fold arm: a substrate node in standalone-TEMPLATE shape (a bare `vm:`/`pod:` — no from:/image:,
-no members) folds into the typed map `uf.Pod`/`uf.VM`/`uf.K8s`/`uf.Local`/`uf.Android`, alongside the existing
-deploy-shape fold into `uf.Bundle`. `candy` stays core (bootstrap-loader — candyIsImage/buildCandy run before
-plugins connect; the ONLY remaining `#Node` arm → `KindWords={candy}`).
+channel that externalizes the structural kind decoders — ALL of them are now DONE: **`group` (C2-group,
+candy/plugin-group)**, **the 5 deploy-substrate kinds pod/vm/k8s/local/android (C2-substrate,
+candy/plugin-substrate — one provider serving all 5)**, and **the LAST one, the `candy` box⊻layer factory
+(C2-candy, candy/plugin-candy-kind)** — all COMPILED-IN. The substrate consumer added the TEMPLATE-map fold
+arm: a substrate node in standalone-TEMPLATE shape (a bare `vm:`/`pod:` — no from:/image:, no members) folds
+into the typed map `uf.Pod`/`uf.VM`/`uf.K8s`/`uf.Local`/`uf.Android`, alongside the deploy-shape fold into
+`uf.Bundle`; candy folds into `uf.Box` (image) / `uf.Candy` (layer). So EVERY authoring kind is plugin-served:
+the `#Node` disjunction has ZERO built-in arms (`#Node: {...}` — a structural gate only) and `spec.KindWords`
+is EMPTY. (candy's bootstrap-critical box⊻layer routing — candyIsImage + buildCandy — STAYS core: the
+discovered-candy pre-check calls it directly, and the COMPILED-IN candy plugin registers at init before any
+load, so there is no bootstrap cycle. candy is `Structural:false` — it nests no deploy members — and routes
+to the host's foldCandyKind by an explicit disc branch.)
 
 **AUTHORED-member INPUT-threading (the enabler that makes group/substrate externalization real).** A
 structural kind's whole POINT is preserving the node's AUTHORED resource-member children (peers, nested
@@ -104,17 +109,22 @@ Reference (out-of-process-only): `candy/plugin-example-structkind` (decodes depl
 `op.Params`, attaches host-threaded members); the host fold is `runPluginKind` (`/charly-internals:go`); the
 byte-equivalence witness is `TestExternalStructKind_StructuralDecode` + the `check-structkind` runtime bed.
 
-**Substrate variant (C2-substrate — the RICH-value case).** The `op.Params`-decode above works for a kind
-whose value is SCALAR-simple (group's `#GroupInput`). The 5 substrate kinds (pod/vm/k8s/local/android) have a
-RICH, core-referencing value (`#Vm`/`#Deploy`/`#LibvirtDomain`/… with host-canonicalized shorthand like
-`tunnel:`/`port:`) that a plugin CANNOT re-decode soundly from `op.Params` nor validate with a self-contained
-schema. So candy/plugin-substrate uses the `spec.StructuralKindLoadEnv.Standalone` channel: the HOST
-pre-decodes the WHOLE CANONICAL node via the core loader (`buildBundleNode` for a deploy shape,
-`decodeNodeValue` for a template shape), validates its value host-side against the KEPT `#<Kind>Value` core
-def, and threads the canonical result via `op.Env`; the plugin is a PURE ECHO (`InputDef:""`, no
-`validateAuthoredPluginInput`), and the host folds the echo into `uf.Bundle` (deploy) or the typed template map
-`uf.Pod`/`uf.VM`/… (template). Byte-equivalence over BOTH shapes: `TestSubstrateKind_BothShapesByteEquivalent`
-(against the direct core decode) + the `check-substrate` runtime bed. Reference: `candy/plugin-substrate`.
+**Rich-value variant (C2-substrate + C2-candy — the HOST-pre-decode+ECHO case).** The `op.Params`-decode above
+works for a kind whose value is SCALAR-simple (group's `#GroupInput`). The 5 substrate kinds
+(pod/vm/k8s/local/android) AND the `candy` box⊻layer factory have a RICH, core-referencing value
+(`#Vm`/`#Deploy`/`#LibvirtDomain`/`#Candy`/`#Box`/… with host-canonicalized shorthand like `tunnel:`/`port:`)
+that a plugin CANNOT re-decode soundly from `op.Params` nor validate with a self-contained schema. So
+candy/plugin-substrate AND candy/plugin-candy-kind use the `spec.StructuralKindLoadEnv.Standalone` channel: the
+HOST pre-decodes the WHOLE CANONICAL node via the core loader (`buildBundleNode` deploy / `decodeNodeValue`
+template for substrate; `candyIsImage` + `buildCandy` for candy — the bootstrap-critical routing that STAYS
+core), validates its value host-side against the KEPT `#<Kind>Value` / `#CandyValue` def
+(`validateKindValueCUE`), and threads the canonical result via `op.Env`; the plugin is a PURE ECHO
+(`InputDef:""`, no `validateAuthoredPluginInput`), and the host folds the echo into `uf.Bundle` (deploy) / the
+typed template map `uf.Pod`/`uf.VM`/… (template) / `uf.Box` (candy-image) / `uf.Candy` (candy-layer).
+Byte-equivalence over ALL shapes: `TestSubstrateKind_BothShapesByteEquivalent` +
+`TestCandyKind_BothShapesByteEquivalent` (against the direct core decode) + box validate across all repos (candy
+is THE core entity) + the `check-substrate` runtime bed. References: `candy/plugin-substrate`,
+`candy/plugin-candy-kind` (distinct from `candy/plugin-candy`, the `command:candy` CLI plugin).
 
 **A kind may serve a DEEP `OpValidate` check (F7/C8).** Beyond the static CUE input-def gate the host always
 runs (`validateAuthoredPluginInput` — unifies the body against the served `#<Kind>Input`), a kind that sets
