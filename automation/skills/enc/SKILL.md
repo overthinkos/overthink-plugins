@@ -332,6 +332,17 @@ List active scopes: `systemctl --user list-units 'charly-enc-*'`
 
 Rootless podman with `--userns=keep-id` creates a two-level user namespace. During container mount setup, crun runs as inner uid 0, which maps through the namespace chain to **host uid 524288** (a subordinate uid), not the FUSE mount owner (uid 1000). FUSE's kernel check rejects access. The `-allow_other` flag bypasses this check, allowing crun to bind-mount from the FUSE filesystem. gocryptfs auto-enables `default_permissions` with `-allow_other`, so kernel UNIX permission checks still apply (0700 dirs restrict access to the mount owner). Confirmed by podman issues #14488, #15314, #16350, #25894.
 
+### Host prerequisite: `user_allow_other` in `/etc/fuse.conf`
+
+Because every mount uses `-allow_other`, the host's `/etc/fuse.conf` MUST contain an active
+`user_allow_other` line — `fusermount3` refuses `-allow_other` for a non-root user without it
+(`option allow_other only allowed if 'user_allow_other' is set`). charly handles this proactively:
+`charly doctor`'s **Encrypted Storage** group checks it (`checkFuseAllowOther`, WARNING + fix hint
+when missing), and the in-core enc shim **preflights** it before a mount/ensure op
+(`fuseAllowOtherEnabled` in `charly/enc.go`) — failing fast with the exact fix
+(`echo user_allow_other | sudo tee -a /etc/fuse.conf`) instead of the raw `fusermount3` error
+mid-mount. Enable it once per host that runs charly encrypted volumes.
+
 ## Integration with Runtime
 
 - **`charly shell`/`charly start` (direct mode)**: resolves volume backing from charly.yml, verifies encrypted volumes are mounted, appends `-v <plain>:<container-path>` flags. `charly start` mounts encrypted volumes inline via systemd-run scopes before starting the container
