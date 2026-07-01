@@ -311,6 +311,12 @@ fallback).
 
 ## Scope Unit Architecture
 
+The gocryptfs / `systemd-run --scope` / fusermount3 SHELLING runs OUT of charly's
+core: it is served by the compiled-in `candy/plugin-enc` (verb:enc, C16a). charly's
+in-core enc shim host-prelifts the resolved per-volume plan + passphrase and Invokes
+the plugin's OpExecute; the plugin runs the commands. The runtime behavior below is
+unchanged by that extraction.
+
 Each encrypted volume is mounted via `systemd-run --scope --user --unit=charly-enc-<image>-<volume> -- gocryptfs -allow_other <cipherdir> <plaindir>`. This creates a transient systemd scope unit that:
 
 - **Survives container stop/restart** — scope units are independent of the container service's cgroup, so `KillMode=mixed` on service stop does not kill gocryptfs
@@ -458,7 +464,8 @@ Plain bind mounts do not use encrypted storage commands. They are direct host di
 
 **Source files:**
 
-- `charly/enc.go` — `encMount` (with all-mounted short-circuit), `ensureEncryptedMounts`, `encUnmount`, scope unit lifecycle, `resolveEncPassphraseForMount` (bounded retry for `source=unavailable` via `retryUnavailable`), `awaitKeyringUnlockViaPlugin` (the `source=locked` waiter — delegates the event-driven DBus wait to `verb:credential await-unlock`, out-of-process in candy/plugin-secrets, so charly's core links no godbus)
+- `charly/enc.go` — the in-core enc SHIM + deploy-model (C16a). `encMount`/`encUnmount`/`encPasswd`/`ensureEncryptedMounts` are thin shims that HOST-PRELIFT the per-volume plan (`encPlanFor`: resolved cipher/plain dirs + init/mounted flags + scope-unit name) and the passphrase, then `encExecViaPlugin` resolves verb:enc and Invokes OpExecute. Keeps (deploy-model, stays core): `encMount`'s all-mounted short-circuit, `encStatus` (pure probe+print), the path/probe helpers (`encryptedPlainDir`/`isEncryptedMounted`/`isEncryptedInitialized`/`cipherPopulatedPlainEmpty` — the mandatorily-core `ResolveVolumeBacking` + `verifyBindMounts` consume them), `loadEncryptedVolume` (loader), `resolveEncPassphraseForMount` (bounded retry for `source=unavailable` via `retryUnavailable`), `awaitKeyringUnlockViaPlugin` (the `source=locked` waiter — delegates the event-driven DBus wait to `verb:credential await-unlock`, out-of-process in candy/plugin-secrets, so charly's core links no godbus)
+- `candy/plugin-enc/enc.go` — the ENCRYPTED-VOLUME (gocryptfs) MECHANICS plugin (C16a, verb:enc, compiled-in): the gocryptfs / `systemd-run --scope --unit=charly-enc-<dir>-<volume>` / fusermount3 / `gocryptfs -init` / `gocryptfs -passwd` / extpass SHELLING (`mountVolumes`/`unmountVolumes`/`ensureVolumes`/`passwdVolumes`/`runGocryptfsScope`/`encExtpassArgs`), driven by the host-prelifted `spec.EncExecInput`. `-allow_other` for rootless keep-id + the stale-scope retry live here. Wire types: `charly/spec/enc_wire.go` (`EncExecInput`/`EncVolumePlan`/`EncExecReply`, shared by the shim + the plugin)
 - `candy/plugin-secrets/keyring_unlock_wait.go` — `awaitUnlock` (the externalized event-driven DBus signal wait for `source=locked`), `awaitUnlockLoop`, `awaitUnlockBackstopOnly`, `isCollectionUnlockedSignal` (the collection-unlocked signal filter), `awaitSignalBackstop` (30s), `awaitProgressLogInterval` (1h)
 - `charly/credential_plugin.go` — the core seam: `pluginCredentialStore.awaitUnlock` (RPCs `verb:credential await-unlock` over a SIGINT/SIGTERM-cancellable ctx) + the `credentialAwaiter` interface
 - `charly/credential_plugin.go` — the CORE adapter: `DefaultCredentialStore` (→ `pluginCredentialStore`), `ResolveCredential` (the `"unavailable"`-vs-`"default"` source distinction), `resolveSecretBackend`, `resetDefaultCredentialStore` (propagates a keyring re-probe to the plugin over `verb:credential reset`)
