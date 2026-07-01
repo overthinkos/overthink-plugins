@@ -232,12 +232,19 @@ SELF-CONTAINED (package-less, references no base def) and used two ways — the 
 
 **A `class:step` plugin ALSO declares its install-step contract over Describe (F3).** A step plugin (a
 PLUGIN-contributed install-step KIND, distinct from a `class:verb` step which rides the fixed
-`ExternalPlugin` kind) sets `ProvidedCapability.StepContract{Scope,Venue,Gate}` (the proto
+`ExternalPlugin` kind) sets `ProvidedCapability.StepContract{Scope,Venue,Gate,Emits}` (the proto
 `step_contract` field; `sdk.ProvidedCapability.StepContract`) — the host carries that DECLARED contract so
 a `run: plugin: <word>` lowers to an `externalStep` (kind `external:<word>`, opaque Payload) the OPEN
 DEFAULT ARM dispatches via `OpExecute`, with NO compiled-in case. Reverse is NOT declared (an external
-step's teardown ops are recorded dynamically from its `OpExecute` reply). Authoring + IR mechanism:
-`/charly-internals:install-plan` (the `externalStep` row); reference: `candy/plugin-example-stepkind`.
+step's teardown ops are recorded dynamically from its `OpExecute` reply). **BUILD leg (F-STEP-EMIT):**
+`StepContract.Emits=true` declares the step ALSO produces a build-context Containerfile FRAGMENT — served by
+`Invoke(OpEmit)` → `spec.EmitReply.Fragment`. Composed into a POD overlay (add_candy), the pod-overlay
+`OCITarget` open external-step arm Invokes that OpEmit and splices the fragment (`Emits=false` → a
+deploy-only step, skipped on the image build, like apk); a HOST-COUPLED step's OpEmit calls back
+`HostBuild("step-emit", …)` for a host-engine-rendered fragment. A step plugin serving OpEmit is a PURE
+step (self-contained fragment); the reference `candy/plugin-example-stepkind` serves BOTH legs (OpExecute at
+deploy, OpEmit at build). Authoring + IR mechanism: `/charly-internals:install-plan` (the `externalStep`
+row); reference: `candy/plugin-example-stepkind`.
 
 **Zero builtin/external distinction in schema handling.** Both arrive at the host as a `PluginUnit`
 (`Providers` + `Schema`) from `PluginTransport.Connect` — `InProcTransport` for a builtin, `LocalTransport`
