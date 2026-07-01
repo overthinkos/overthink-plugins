@@ -247,8 +247,9 @@ deploy, OpEmit at build). A `class:step` plugin may ALSO serve ONLY the build-em
 `candy/plugin-installstep` serves `OpEmit` for the compiler-emitted builtin InstallStep kinds, fed the
 compiler-produced step VIEW as payload — those kinds keep their typed IR + `kit.WalkPlans` deploy leg
 (so the plugin needs no `OpExecute`); the host routes them by `pluginEmitStepWords`, not the
-`external:<word>` arm. Two sub-categories: the seven PURE kinds
-(file/shell-hook/shell-snippet/service-packaged/service-custom/repo-change/apk-install, C1.1) format
+`external:<word>` arm. Two sub-categories: the PURE kinds
+(file/shell-hook/shell-snippet/service-packaged/service-custom/repo-change/apk-install, C1.1; + the
+no-op-emit reboot, C1.6 — `apk-install`/`reboot` declare `Emits=false` and are skipped at build) format
 their fragment directly from the view; the HOST-COUPLED `system-packages` (C1.2) + `builder` (C1.3) +
 `local-pkg-install` (C1.4) + `op` (C1.5) kinds instead call back `HostBuild("step-emit", …)` (echoing the returned
 `EmitReply`) because their render needs the host build engine (`system-packages`: DistroDef format templates;
