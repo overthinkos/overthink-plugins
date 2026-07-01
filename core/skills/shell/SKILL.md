@@ -121,7 +121,7 @@ When an AMD GPU is detected, `keep-groups` is auto-added to preserve host supple
 
 **Shared code path:** `charly shell` calls `appendAutoDetectedEnv()` in `charly/devices.go` — the same function used by `charly config` and `charly start`. That means the three commands produce an identical env set on every run, eliminating drift that used to exist when DRINODE injection was scattered across 10 different call sites before commit `8f6f322`. See `/charly-core:charly-doctor` (Hardware Detection) for the probe side, `/charly-distros:nvidia` (DRINODE Auto-Injection) for the NVIDIA consumer, and `/charly-distros:rocm` (Runtime Environment) for the AMD consumer.
 
-Source: `charly/devices.go` (`DetectHostDevices`, `DetectGPU`, `DetectAMDGPU`, `appendAutoDetectedEnv`).
+Source: `charly/devices.go` (`appendAutoDetectedEnv`, the env/group helpers) + `charly/gpu_shim.go` (the `DetectHostDevices`/`DetectGPU`/`DetectAMDGPU` shims, which since C11 resolve+Invoke the compiled-in `candy/plugin-gpu`).
 
 ## Environment Variables
 
