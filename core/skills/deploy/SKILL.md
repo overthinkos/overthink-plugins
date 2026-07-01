@@ -543,7 +543,7 @@ Port protocols are stored in the `ai.opencharly.port_proto` image label so deplo
 
 `tunnel` inherits from defaults (image -> defaults -> nil). The shorthand `tunnel: tailscale` defaults to `private: all` (all ports on tailnet). The shorthand `tunnel: cloudflare` defaults to `public: all`.
 
-Source: `charly/tunnel.go` (`schemeTarget`, `tailscaleFlag`, `isTCPFamily`), `charly/quadlet.go` (systemd integration). Tunnel config is a deploy-time concern (charly.yml only) — not validated at image-validate time.
+Source: `charly/tunnel.go` (resolution + the shared `schemeTarget`/`tailscaleFlag`/`isTCPFamily` helpers), `charly/tunnel_plugin.go` (the core adapter forwarding `TunnelStart`/`TunnelStop`/`cloudflareTunnelSetup` to `verb:tunnel`), `candy/plugin-tunnel` (the externalized tailscale/cloudflared EXECUTION leg — C16b), `charly/quadlet.go` (systemd integration). Tunnel config is a deploy-time concern (charly.yml only) — not validated at image-validate time.
 
 ## charly.yml — Source of Truth
 
