@@ -113,7 +113,7 @@ See `/charly-image:image` "user_policy" and `/charly-build:build` "base_user" fo
 
 `charly check box ghcr.io/overthinkos/debian-coder:latest` — **143 passed · 0 failed · 0 skipped**.
 
-Against a live running container, the same command adds live-service extension tests (sshd on 2222, supervisord, dbus, charly-mcp, virtqemud session), mirroring fedora-coder's +18 deploy-scope additions.
+Against a live running container, the same command adds live-service extension tests (sshd on 2222, supervisord, dbus, charly-mcp, the libvirt `qemu:///session` daemon — `libvirtd` on Debian, not the Fedora/Arch modular `virtqemud`), mirroring fedora-coder's +18 deploy-scope additions.
 
 ## Verification recipe
 

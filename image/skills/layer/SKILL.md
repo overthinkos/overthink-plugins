@@ -808,6 +808,7 @@ sshd-service:
 | `name` | yes | both | Service identifier; passed to `service_template` as `.Name` |
 | `use_packaged` | form 1 | packaged | Distro-shipped unit name (e.g., `postgresql.service`); mutually exclusive with `exec` |
 | `exec` | form 2 | custom | Command to run (`ExecStart` in systemd, `command` in supervisord) |
+| `distro` | no | both | List of distros this entry renders on — a bare name (`debian`) or a versioned tag (`debian:13`). Empty/absent = every distro (the default). The service analogue of a check step's `exclude_distros:` — it scopes an entry to the distros whose packaging actually ships that unit/binary, so ONE candy carries per-distro-DIVERGENT daemons without a `<name>-host` sibling (R3). Filtered at render time in BOTH the build path (supervisord fragments + bootc `system_enable`) and the deploy path (`compileServiceSteps`). Canonical example: `/charly-infrastructure:virtualization` (modular `virtqemud`/`virtnetworkd` on Fedora/Arch vs monolithic `libvirtd` on Debian/Ubuntu). |
 | `env` | no | both | Map of env vars; systemd renders as `Environment="K=V"`, supervisord as `environment=K="V",...` |
 | `restart` | no | custom | `no` / `on-failure` / `always` / `unless-stopped`; mapped by init-specific template helper |
 | `working_directory` | no | custom | `WorkingDirectory=` (systemd) / `directory=` (supervisord) |
@@ -840,7 +841,7 @@ See `/charly-infrastructure:supervisord` for the supervisord ServiceSchemaDef te
 - `/charly-ollama:ollama` — single custom entry (common shape)
 - `/charly-hermes:hermes` — custom entry with complex env and ordering
 - `/charly-coder:sshd` — mixed (packaged + custom) within one candy
-- `/charly-infrastructure:virtualization` — mixed entries for virtqemud/virtnetworkd (canonical polymorphism example)
+- `/charly-infrastructure:virtualization` — mixed entries + per-entry `distro:` filter: modular virtqemud/virtnetworkd on Fedora/Arch vs monolithic libvirtd on Debian/Ubuntu (canonical polymorphism example)
 - `/charly-infrastructure:traefik` — multiple custom entries for a multi-service candy
 
 ### Anti-pattern: `<name>-host` / `<name>-pod` sibling candies
