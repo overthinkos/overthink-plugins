@@ -378,10 +378,15 @@ A kit candy keeps the verb's logic (RunVerb on `kit.CheckContext`) OUTSIDE charl
 the typed fast path — runnable in-proc (compiled-in, the real `*Runner`, no envelope) OR out-of-process (the
 reverse channel) with ZERO authoring change.
 
-The SDK (`charly/plugin/sdk`) is the ONLY charly package an external module imports — `Serve`,
+The SDK (`charly/plugin/sdk`) is the primary charly package an external module imports — `Serve`,
 `ServeCheckVerb` (the kit-verb out-of-process serve entry), `Handshake`, `BuildCapabilities`,
-`ProvidedCapability`, `Conn`. `schemaconcat` stays `internal/` (the SDK, under `charly/`,
-imports it; the external module reaches it only transitively through the SDK).
+`ProvidedCapability`, `Conn`, plus the shared out-of-process check-verb helpers `ResultJSON`
+(the `{status,message}` reply) / `CheckRequiredModifiers` (the required-modifier check) + the
+`*Executor` venue methods `VenueCapture`/`VenueHasTool`/`VenueRunSilent`. An external module ALSO
+imports the pure-helper package `charly/plugin/kit` directly (stdlib + `charly/spec` only —
+`ShellQuote`, `TrimPreview`, `MethodSpec`, `WalkPlans`, …; the SDK imports it too). `schemaconcat`
+stays `internal/` (the SDK, under `charly/`, imports it; the external module reaches it only
+transitively through the SDK).
 
 ## Authoring an external COMMAND plugin (a `charly <word>` subcommand)
 
