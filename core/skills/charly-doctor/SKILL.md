@@ -12,6 +12,8 @@ description: |
 
 `charly doctor` checks all host dependencies grouped by feature area, probes for GPU and device hardware, and reports a summary. Use it to diagnose missing tools, verify GPU setup, or check if a host is ready for charly operations.
 
+`charly doctor` is an **external COMMAND-class plugin** (`candy/plugin-doctor`, `command:doctor`) — the fifth welded-command externalization in the core-externalization program (after `tmux`/`preempt`/`feature`/`vm`). The user-facing command is unchanged; only its CLI registration moved out-of-process. The plugin is a THIN forwarder: charly resolves the `doctor` word via the discovered (or `/usr/lib/charly/plugins`-baked) plugin and syscall.Exec's it in CLI mode, which raw-forwards the args to the hidden in-core `charly __doctor` command. The `DoctorCmd.Run` handler STAYS core (`charly/doctor.go`) because it calls the package-main host-detection symbols (`credentialHealth`, `DetectGPU`/`DetectAMDGPU`/`DetectHostDevices`, `DetectVFIO`/`VfioGroupAccessible`/`MemlockLimitBytes`) that cannot cross the process boundary.
+
 ## Usage
 
 ```bash
@@ -139,7 +141,7 @@ Each check shows the binary path and version when available, or an install hint 
 
 ## Source
 
-`charly/doctor.go`.
+`charly/doctor.go` (the in-core `DoctorCmd` impl + the hidden `charly __doctor` registration in `charly/main.go`) + `candy/plugin-doctor/` (the out-of-tree `command:doctor` forwarder).
 
 ## When to Use This Skill
 
