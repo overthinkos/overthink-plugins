@@ -11,6 +11,8 @@ description: |
 
 Manage charly's runtime configuration stored in `~/.config/charly/settings.yml`. Controls engine selection, networking, storage paths, secret backend, and agent forwarding.
 
+`charly settings` is an **external COMMAND-class plugin** (`candy/plugin-settings`, `command:settings`) — one of cutover C15's four remaining welded-command externalizations (after `tmux`/`preempt`/`feature`/`vm`/`doctor`). The user-facing command tree is unchanged; only its CLI registration moved out-of-process. The plugin is a THIN forwarder: charly resolves the `settings` word via the discovered (or `/usr/lib/charly/plugins`-baked) plugin and syscall.Exec's it in CLI mode, which raw-forwards the args to the hidden in-core `charly __settings` command. Because `settings` is a command TREE (get/set/list/path/reset), the plugin raw-forwards every subcommand token through kong passthrough — one forwarder covers the whole tree. The `SettingsCmd` handlers STAY core (`charly/main.go`) because they read and write the runtime config file `~/.config/charly/config.yml` and resolve the credential-store backend + the runtime engine — config machinery an out-of-process plugin cannot reach.
+
 ## Quick Reference
 
 | Action | Command | Description |

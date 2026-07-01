@@ -91,6 +91,8 @@ Every editor verb above auto-becomes an MCP tool via Kong reflection (`candy.set
 
 The `charly candy …` group edits `candy/<name>/charly.yml` through the `yaml.v3` Node API, so **comments and key order are preserved** across edits. Unlike unmarshal-then-marshal, nothing gets scrambled when an agent (or a shell script) touches the file:
 
+> The top-level `charly candy` authoring tree is an **external COMMAND-class plugin** (`candy/plugin-candy`, `command:candy`) — one of cutover C15's four remaining welded-command externalizations (after `tmux`/`preempt`/`feature`/`vm`/`doctor`). The user-facing command tree is unchanged; only its CLI registration moved out-of-process. The plugin is a THIN forwarder: charly resolves the `candy` word via the discovered (or `/usr/lib/charly/plugins`-baked) plugin and syscall.Exec's it in CLI mode, which raw-forwards every subcommand token (kong passthrough) to the hidden in-core `charly __candy` command. The `CandyCmd` handlers (`charly/scaffold_cmds.go`) STAY core because they mutate `candy/<name>/charly.yml` via the `yaml.v3` Node API behind the `resolveProjectFile` traversal guard. (This is NOT `charly new candy` — `NewCandyCmd`, a child of `charly new` — which stays a builtin.)
+
 ```bash
 # Append packages (idempotent; handles scaffold's null `package:` value):
 charly candy add-rpm sshd openssh-server openssh-clients

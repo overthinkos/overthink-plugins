@@ -16,6 +16,8 @@ description: |
 the on-demand counterpart to the auto-pruning that runs after `charly box build`
 and `charly check run`.
 
+`charly clean` is an **external COMMAND-class plugin** (`candy/plugin-clean`, `command:clean`) — one of cutover C15's four remaining welded-command externalizations (after `tmux`/`preempt`/`feature`/`vm`/`doctor`). The user-facing command is unchanged; only its CLI registration moved out-of-process. The plugin is a THIN forwarder: charly resolves the `clean` word via the discovered (or `/usr/lib/charly/plugins`-baked) plugin and syscall.Exec's it in CLI mode, which raw-forwards the args to the hidden in-core `charly __clean` command. The `CleanCmd.Run` handler STAYS core (`charly/clean.go`) because it reads the project charly.yml `defaults:` (keep_images / keep_check_runs), resolves the build engine (`ResolveRuntime`), and prunes `.build/` / `.check/` artifacts + charly-labeled podman image tags — project + engine + filesystem machinery an out-of-process plugin cannot reach.
+
 Two artifact classes, two policies (operator principle):
 
 - **One-time / transient → always cleaned immediately.** makepkg leftovers under
@@ -95,7 +97,9 @@ the qcow2 build.
 ## Implementation
 
 `charly/clean.go` — `pruneImagesByRetention`, `pruneCheckRuns`,
-`cleanMakepkgArtifacts`, `CleanCmd`. Hooks in `BuildCmd.Run` (`charly/build.go`) and
+`cleanMakepkgArtifacts`, `CleanCmd` (the in-core impl + the hidden `charly __clean` registration
+in `charly/main.go`) + `candy/plugin-clean/` (the out-of-tree `command:clean` forwarder).
+Hooks in `BuildCmd.Run` (`charly/build.go`) and
 `CheckRunCmd.Run` (`charly/check_runner_cmd.go`). Retention keys live on `BoxConfig`
 (`charly/config.go`), merged via `mergeBoxConfig` (`charly/unified.go`), validated in
 `validateBuildTunables` (`charly/validate.go`).
