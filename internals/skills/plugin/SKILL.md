@@ -79,8 +79,23 @@ M16 (egress) move those in-core capabilities onto this phase machinery.
 folds into `uf.Bundle`, the SAME map a builtin pod/group/candy decoder populates, so the entity participates in
 deploy/check exactly like a builtin (the folded member goes through the SAME `validateDeploy`). This is the
 channel that lets the seven builtin structural kind decoders (pod/vm/k8s/local/android/group/candy) be
-EXTERNALIZED. Reference (out-of-process-only): `candy/plugin-example-structkind`; the host fold is `runPluginKind`
-(`/charly-internals:go`).
+EXTERNALIZED.
+
+**AUTHORED-member INPUT-threading (the enabler that makes group/substrate externalization real).** A
+structural kind's whole POINT is preserving the node's AUTHORED resource-member children (peers, nested
+pod-in-pod, cross-member `${HOST:…}` checks) — but they CANNOT ride `op.Params`: that JSON is unified against
+the plugin's CLOSED `#<Kind>Input` def, which the member subtree would violate. So the HOST pre-decodes the
+authored member children via the SAME core `buildBundleNode` recursion the builtin path uses
+(`buildResourceMemberChildren` — ONE member-decode source of truth, R3) and threads the decoded subtree to
+`OpLoad` via `op.Env` (`spec.StructuralKindLoadEnv{Members}`). The plugin decodes only its kind-specific scalar
+body from `op.Params` and ATTACHES the host-threaded members to its `spec.Deploy` reply — Members for a
+targetless kind (group), Children for a workload — so the reconstructed `uf.Bundle` entry is BYTE-EQUIVALENT to
+a builtin `group`'s in-proc decode (`${HOST:…}` refs survive as literals, resolved later by tree position). A
+FLAT kind carrying member children is a HARD error (never a silent drop). The parser admits sub-entity children
+under a recognized external STRUCTURAL kind (`externalKindMayNestMembers`), core non-resource kinds stay guarded.
+Reference (out-of-process-only): `candy/plugin-example-structkind` (decodes deploy-config scalars from
+`op.Params`, attaches host-threaded members); the host fold is `runPluginKind` (`/charly-internals:go`); the
+byte-equivalence witness is `TestExternalStructKind_StructuralDecode` + the `check-structkind` runtime bed.
 
 **A kind may serve a DEEP `OpValidate` check (F7/C8).** Beyond the static CUE input-def gate the host always
 runs (`validateAuthoredPluginInput` — unifies the body against the served `#<Kind>Input`), a kind that sets
