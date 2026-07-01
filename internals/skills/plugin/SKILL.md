@@ -250,10 +250,11 @@ compiler-produced step VIEW as payload — those kinds keep their typed IR + `ki
 `external:<word>` arm. Two sub-categories: the seven PURE kinds
 (file/shell-hook/shell-snippet/service-packaged/service-custom/repo-change/apk-install, C1.1) format
 their fragment directly from the view; the HOST-COUPLED `system-packages` (C1.2) + `builder` (C1.3) +
-`local-pkg-install` (C1.4) kinds instead call back `HostBuild("step-emit", …)` (echoing the returned
+`local-pkg-install` (C1.4) + `op` (C1.5) kinds instead call back `HostBuild("step-emit", …)` (echoing the returned
 `EmitReply`) because their render needs the host build engine (`system-packages`: DistroDef format templates;
 `builder`: the multi-stage `buildStageContext` + `RenderTemplate` engine; `local-pkg-install`:
-`renderLocalPkgImageInstall` — the host localpkg build + staging). Authoring + IR mechanism: `/charly-internals:install-plan` (the
+`renderLocalPkgImageInstall` — the host localpkg build + staging; `op`: the RICHEST — `Generator.emitTasks`, the
+full per-verb render pipeline with COPY staging + op coalescing). Authoring + IR mechanism: `/charly-internals:install-plan` (the
 `externalStep` row + the build-emit externalization note); reference: `candy/plugin-example-stepkind`,
 `candy/plugin-installstep`.
 
