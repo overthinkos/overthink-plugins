@@ -244,12 +244,16 @@ deploy-only step, skipped on the image build, like apk); a HOST-COUPLED step's O
 `HostBuild("step-emit", …)` for a host-engine-rendered fragment. A step plugin serving OpEmit is a PURE
 step (self-contained fragment); the reference `candy/plugin-example-stepkind` serves BOTH legs (OpExecute at
 deploy, OpEmit at build). A `class:step` plugin may ALSO serve ONLY the build-emit leg: the compiled-in
-`candy/plugin-installstep` serves `OpEmit` for the seven PURE builtin InstallStep kinds
-(file/shell-hook/shell-snippet/service-packaged/service-custom/repo-change/apk-install, C1.1), fed the
+`candy/plugin-installstep` serves `OpEmit` for the compiler-emitted builtin InstallStep kinds, fed the
 compiler-produced step VIEW as payload — those kinds keep their typed IR + `kit.WalkPlans` deploy leg
 (so the plugin needs no `OpExecute`); the host routes them by `pluginEmitStepWords`, not the
-`external:<word>` arm. Authoring + IR mechanism: `/charly-internals:install-plan` (the `externalStep`
-row + the build-emit externalization note); reference: `candy/plugin-example-stepkind`, `candy/plugin-installstep`.
+`external:<word>` arm. Two sub-categories: the seven PURE kinds
+(file/shell-hook/shell-snippet/service-packaged/service-custom/repo-change/apk-install, C1.1) format
+their fragment directly from the view; the HOST-COUPLED `system-packages` kind (C1.2) instead calls back
+`HostBuild("step-emit", …)` (echoing the returned `EmitReply`) because its render needs the host build
+engine (DistroDef format templates). Authoring + IR mechanism: `/charly-internals:install-plan` (the
+`externalStep` row + the build-emit externalization note); reference: `candy/plugin-example-stepkind`,
+`candy/plugin-installstep`.
 
 **Zero builtin/external distinction in schema handling.** Both arrive at the host as a `PluginUnit`
 (`Providers` + `Schema`) from `PluginTransport.Connect` — `InProcTransport` for a builtin, `LocalTransport`
