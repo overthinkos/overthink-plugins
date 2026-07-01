@@ -79,9 +79,12 @@ M16 (egress) move those in-core capabilities onto this phase machinery.
 folds into `uf.Bundle`, the SAME map the in-proc pod/candy decoders populate, so the entity participates in
 deploy/check exactly like a builtin (the folded member goes through the SAME `validateDeploy`). This is the
 channel that externalizes the structural kind decoders: **`group` is DONE (C2-group — candy/plugin-group,
-COMPILED-IN)**; the deploy-substrate TEMPLATE kinds (pod/vm/k8s/local/android) are the next consumers (they need
-a per-substrate template-fold arm for the uf.Pod/uf.VM/… shape — a follow-up); `candy` stays core
-(bootstrap-loader — candyIsImage/buildCandy run before plugins connect).
+COMPILED-IN)** and **the 5 deploy-substrate kinds pod/vm/k8s/local/android are DONE (C2-substrate —
+candy/plugin-substrate, COMPILED-IN, one provider serving all 5)**. The substrate consumer added the
+TEMPLATE-map fold arm: a substrate node in standalone-TEMPLATE shape (a bare `vm:`/`pod:` — no from:/image:,
+no members) folds into the typed map `uf.Pod`/`uf.VM`/`uf.K8s`/`uf.Local`/`uf.Android`, alongside the existing
+deploy-shape fold into `uf.Bundle`. `candy` stays core (bootstrap-loader — candyIsImage/buildCandy run before
+plugins connect; the ONLY remaining `#Node` arm → `KindWords={candy}`).
 
 **AUTHORED-member INPUT-threading (the enabler that makes group/substrate externalization real).** A
 structural kind's whole POINT is preserving the node's AUTHORED resource-member children (peers, nested
@@ -100,6 +103,18 @@ under a recognized external STRUCTURAL kind (`externalKindMayNestMembers`), core
 Reference (out-of-process-only): `candy/plugin-example-structkind` (decodes deploy-config scalars from
 `op.Params`, attaches host-threaded members); the host fold is `runPluginKind` (`/charly-internals:go`); the
 byte-equivalence witness is `TestExternalStructKind_StructuralDecode` + the `check-structkind` runtime bed.
+
+**Substrate variant (C2-substrate — the RICH-value case).** The `op.Params`-decode above works for a kind
+whose value is SCALAR-simple (group's `#GroupInput`). The 5 substrate kinds (pod/vm/k8s/local/android) have a
+RICH, core-referencing value (`#Vm`/`#Deploy`/`#LibvirtDomain`/… with host-canonicalized shorthand like
+`tunnel:`/`port:`) that a plugin CANNOT re-decode soundly from `op.Params` nor validate with a self-contained
+schema. So candy/plugin-substrate uses the `spec.StructuralKindLoadEnv.Standalone` channel: the HOST
+pre-decodes the WHOLE CANONICAL node via the core loader (`buildBundleNode` for a deploy shape,
+`decodeNodeValue` for a template shape), validates its value host-side against the KEPT `#<Kind>Value` core
+def, and threads the canonical result via `op.Env`; the plugin is a PURE ECHO (`InputDef:""`, no
+`validateAuthoredPluginInput`), and the host folds the echo into `uf.Bundle` (deploy) or the typed template map
+`uf.Pod`/`uf.VM`/… (template). Byte-equivalence over BOTH shapes: `TestSubstrateKind_BothShapesByteEquivalent`
+(against the direct core decode) + the `check-substrate` runtime bed. Reference: `candy/plugin-substrate`.
 
 **A kind may serve a DEEP `OpValidate` check (F7/C8).** Beyond the static CUE input-def gate the host always
 runs (`validateAuthoredPluginInput` — unifies the body against the served `#<Kind>Input`), a kind that sets
