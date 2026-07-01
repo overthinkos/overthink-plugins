@@ -20,7 +20,7 @@ my-plugin:
       What this plugin provides.
   my-plugin-decl:
     plugin:
-      providers: [verb:myprobe]     # "<class>:<word>" — class ∈ kind|verb|deploy|step|builder|command
+      providers: [verb:myprobe]     # "<class>:<word>" — class ∈ kind|verb|deploy|step|builder|command|build
       source: builtin               # OR github.com/org/repo/candy/<name>  (out-of-tree)
   myprobe-check:                     # ADE: ≥1 deterministic check (its OWN acceptance test)
     check: the myprobe verb dispatches and passes
@@ -34,13 +34,37 @@ applies (`/charly-image:layer`), including the mandatory `version:`/`description
 
 ## One Provider, transport-invisible
 
-Every reserved word — every kind, verb, deploy-target, step, builder, command — is served by ONE `Provider`
+Every reserved word — every kind, verb, deploy-target, step, builder, command, build — is served by ONE `Provider`
 (`charly/provider.go`): `Reserved() string`, `Class() ProviderClass`, `Invoke(ctx, *Operation) (*Result,
 error)`. A Provider is IN-PROCESS (a builtin, registered from `init()`) or OUT-OF-PROCESS (an external,
 served over go-plugin gRPC). The registry (`providerRegistry`, `provider_registry.go`), the call sites, and
 the bijection gate treat both identically — **the transport is invisible above the registry**. A
 `check: { plugin: <word>, plugin_input: {…} }` step dispatches through `runPluginVerb` →
 `providerRegistry.ResolveVerb(word)` → `Invoke`, whether the provider is compiled in or out-of-process.
+
+**The `build` class (BUILD-ENGINE DISPATCH).** `ClassBuild` serves `build:box` + `build:generate`
+(candy/plugin-build, COMPILED-IN): `charly box build` / `charly box generate` route through it instead of
+calling `NewGenerator` inline. The plugin's Invoke (op `sdk.OpBuild`) is a thin dispatch/echo — it forwards
+the host-constructed `spec.BuildRequest` (op.Params, verbatim) to `Executor.HostBuild(kind, …)` over the F10
+reverse channel and ECHOES the `spec.BuildReply`; the host-builder (registered on `hostBuilders`) runs the
+heavy engine HOST-SIDE in-process (`runBoxBuild` / `runBoxGenerate`). build:box → HostBuild("image"),
+build:generate → HostBuild("containerfiles") — the host-builder KINDS are class-generic action nouns, never
+the provider WORDS (the F11 uniform-API gate `TestNoSinglePluginAPISurface` forbids a provider word on that
+surface). The engine (Generator / OCITarget / runtime Candy graph) STAYS core, UNCHANGED — only the wire
+envelope crosses; the group/substrate/candy echo pattern applied to build. See `/charly-build:build` +
+`/charly-build:generate`.
+
+**In-proc reverse channel (compiled-in placement of HostBuild / the reverse channel).** A COMPILED-IN plugin
+has no go-plugin broker, so it cannot dial the gRPC reverse channel an out-of-process plugin uses.
+`inprocExecutorClient` (`charly/plugin_inproc_reverse.go`) implements `pb.ExecutorServiceClient` by delegating
+DIRECTLY to a host-side `executorReverseServer` (no socket); `sdk.NewInProcExecutor` + `sdk.ContextWithExecutor`
+thread it onto the Invoke context, and `sdk.ExecutorForInvoke(ctx, brokerID)` (ctx-first, broker-fallback) is
+the ONE accessor a plugin's Invoke calls — so the plugin's reverse-channel code is byte-identical compiled-in
+vs out-of-process (placement-invisible). It deliberately does NOT reuse `executorInvoker` (which stays
+grpcProvider-ONLY — that interface is the discriminator routing external verbs to `ExternalPluginStep`, and a
+compiled-in provider must not collide with it); the in-proc reverse channel is threaded by the build dispatch
+inline. This is the general foundation the "every builtin routes through the reverse channel" direction needs;
+its first consumer is the `build` class.
 
 ## Placement: builtin OR external, in-proc OR out-of-process — at deploy AND build time
 
