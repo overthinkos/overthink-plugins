@@ -164,9 +164,11 @@ runs a read-only probe for a true device_lock wedge (a `D`-state task in
 (a bind on a wedged card would add a second permanent `D`-state). On a healthy
 card it rebinds the whole group to vfio-pci and clears any stale poison marker.
 
-Implementation + full RCA: `charly/gpu_driver_switch.go` (the switch primitive),
-`charly/preempt.go` (poisoning), `charly/vm_gpu_cmd.go` (status/recover); the
-arbiter side is `/charly-internals:disposable` "resource-arbitration axis".
+Implementation + full RCA: `candy/plugin-gpu/switch.go` (the switch primitive, cutover
+C9 — reached from core via the `charly/gpu_shim.go` driver-switch shims), the arbiter's
+poisoning in `candy/plugin-preempt` (`arbiter_support.go`), `charly/vm_gpu_cmd.go`
+(status/recover/plan); the arbiter side is `/charly-internals:disposable`
+"resource-arbitration axis".
 
 ## Building Disk Images
 

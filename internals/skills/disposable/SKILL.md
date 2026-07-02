@@ -179,7 +179,9 @@ passthrough".
 
 **The mode flip (vfio ↔ nvidia) + the device_lock wedge.** For a gpu-backed
 token the arbiter flips the card's host driver via `applyMode → switchMode`
-(`charly/preempt.go` → `charly/gpu_driver_switch.go`): a SHARED claim flips the
+(the arbiter in `candy/plugin-preempt` calls its switchMode host-seam over the
+HostArbiter reverse channel; the host routes it to the driver-switch in
+`candy/plugin-gpu` via the gpu shims — cutover C9): a SHARED claim flips the
 WHOLE IOMMU group to nvidia + regenerates CDI; an EXCLUSIVE claim flips it to
 vfio. The flip is **group-aware** (every function: display→nvidia/vfio,
 HDMI-audio→snd_hda_intel/vfio) and **safe by construction** — the nvidia→vfio
